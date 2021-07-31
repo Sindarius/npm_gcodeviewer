@@ -1,0 +1,44 @@
+{
+	"name": "@sindarius/gcodeviewer",
+	"version": "1.0.0",
+	"description": "GCode Visualization Package",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "babel src -d dist"
+	},
+	"files": [
+		"/dist"
+	],
+	"babel": {
+		"presets": [
+			"es2015"
+		]
+	},
+	"eslintConfig": {
+		"root": true,
+		"env": {
+			"node": true
+		},
+		"extends": [
+			"plugin:vue/essential",
+			"eslint:recommended"
+		],
+		"parserOptions": {
+			"parser": "babel-eslint"
+		},
+		"rules": {}
+	},
+	"author": "Sindarius",
+	"license": "ISC",
+	"dependencies": {
+		"@babylonjs/core": "^4.2.0",
+		"@babylonjs/inspector": "^4.2.0",
+		"@babylonjs/materials": "^4.2.0",
+		"d3": "^7.0.0"
+	},
+	"devDependencies": {
+		"babel-cli": "^6.26.0",
+		"babel-preset-es2015": "^6.24.1"
+	}
+}
