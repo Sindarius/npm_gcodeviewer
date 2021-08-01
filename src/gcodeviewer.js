@@ -475,4 +475,8 @@ export default class {
     localStorage.setItem('cameraInertia', enabled);
     this.updateCameraInertiaProperties()
   }
+  dispose(){
+    this.scene.dispose();
+    this.engine.dispose();
+  }
 }
