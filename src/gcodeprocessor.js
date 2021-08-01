@@ -134,6 +134,7 @@ export default class {
     this.loadingProgressCallback;
 
     this.hasSpindle = false;
+    this.disposed = false;
   }
 
   setExtruderColors(colors) {
@@ -307,7 +308,8 @@ export default class {
     let filePosition = 0; //going to make this file position
     this.timeStamp = Date.now();
     while (lines.length) {
-      if (this.cancelLoad) {
+
+      if (this.cancelLoad || this.disposed) {
         this.cancelLoad = false;
         return;
       }
@@ -922,6 +924,10 @@ export default class {
   setLiveTrackingShowSolid(value) {
     this.liveTrackingShowSolid = value;
     localStorage.setItem('showSolid', value);
+  }
+
+  dispose(){
+    this.disposed = true;
   }
 
 }
