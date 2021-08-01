@@ -476,9 +476,9 @@ export default class {
     this.updateCameraInertiaProperties()
   }
   dispose(){
+    this.clearScene(true);
     this.gcodeProcessor.dispose();
     this.gcodeProcessor = null;
-    this.clearScene(true);
     this.scene.dispose();
     this.engine.dispose();
   }
