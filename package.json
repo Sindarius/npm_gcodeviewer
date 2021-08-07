@@ -2,30 +2,15 @@
 	"name": "@sindarius/gcodeviewer",
 	"version": "1.0.5",
 	"description": "GCode Visualization Package",
-	"main": "index.js",
+	"module": "dist/sindarius-gcodeviewer.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build-old": "babel src -d dist",
-		"build": "babel src --out-file dist/sindarius-gcodeviewer.js"
+		"build": "webpack --mode production"
 	},
 	"files": [
 		"/dist"
 	],
-	"babel": {
-		"presets": [
-			"@babel/preset-env",
-			[
-				"minify",
-				{
-					"builtIns": false,
-					"evaluate": false,
-					"mangle": true,
-					"keepClassName": true
-				}
-			]
-		],
-		"comments": false
-	},
 	"eslintConfig": {
 		"root": true,
 		"env": {
@@ -49,9 +34,11 @@
 		"d3": "^7.0.0"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.14.8",
 		"@babel/core": "^7.15.0",
 		"@babel/preset-env": "^7.15.0",
-		"babel-preset-minify": "^0.5.1"
+		"babel-loader": "^8.2.2",
+		"lodash": "^4.17.21",
+		"webpack": "^5.49.0",
+		"webpack-cli": "^4.7.2"
 	}
 }
