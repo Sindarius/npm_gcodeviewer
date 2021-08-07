@@ -1,12 +1,12 @@
 {
 	"name": "@sindarius/gcodeviewer",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"description": "GCode Visualization Package",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build-old": "babel src -d dist",
-		"build":  "babel src --out-file dist/sindarius-gcodeviewer.js"
+		"build": "babel src --out-file dist/sindarius-gcodeviewer.js"
 	},
 	"files": [
 		"/dist"
@@ -14,15 +14,17 @@
 	"babel": {
 		"presets": [
 			"@babel/preset-env",
-			["minify", {
-				"builtIns": false,
-				"evaluate": false,
-				"mangle": true,
-				"keepClassName" : true
-			}]
+			[
+				"minify",
+				{
+					"builtIns": false,
+					"evaluate": false,
+					"mangle": true,
+					"keepClassName": true
+				}
+			]
 		],
 		"comments": false
-		
 	},
 	"eslintConfig": {
 		"root": true,
