@@ -1,4 +1,5 @@
 const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/gcodeviewer.js',
@@ -6,16 +7,12 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'sindarius-gcodeviewer.js',
     library: {
-      name:'GCodeViewer',
+      name: 'GCodeViewer',
       type: 'umd'
-    }
+    },
   },
-  externals: {
-    lodash: {
-      commonjs: 'lodash',
-      commonjs2: 'lodash',
-      amd: 'lodash',
-      root: '_',
-    }
-  }
-};
+  externalsPresets: { node: true }, // in order to ignore built-in modules like path, fs, etc.
+  externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
+
+}
+
