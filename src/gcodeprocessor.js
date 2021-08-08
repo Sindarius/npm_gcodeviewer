@@ -709,8 +709,10 @@ export default class {
 
     let l = this.lines;
 
+
     let particleBuilder = function (particle, i, s) {
       l[s].renderLineV3(particle, that.lineVertexAlpha || (that.liveTracking && !that.liveTrackingShowSolid));
+
     };
 
     let sps = new SolidParticleSystem('gcodemodel' + meshIndex, scene, {
@@ -737,11 +739,6 @@ export default class {
     sps.initParticles();
     sps.buildMesh();
 
-    //Clear line memory out
-    for(let lineIdx = 0; lineIdx < this.lines.length; lineIdx++){
-      delete(this.lines.lineIdx);
-    }
-    
 
     let transparentValue = this.lineVertexAlpha ? this.materialTransparency : 1;
     if (this.liveTracking) {
@@ -795,8 +792,6 @@ export default class {
     this.renderFuncs.push(beforeRenderFunc);
     scene.registerBeforeRender(beforeRenderFunc);
     this.scene.clearCachedVertexData();
-
-
   }
 
   renderPointMode(scene) {
@@ -827,9 +822,6 @@ export default class {
       this.renderPointMode(scene);
     }
 
-    for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
-      delete (this.lines[lineIdx]);
-    }
     this.lines = [];
 
     this.scene.render();
