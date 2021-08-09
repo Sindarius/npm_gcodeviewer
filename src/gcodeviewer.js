@@ -14,9 +14,6 @@ import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
 
 
-//import '@babylonjs/core/Debug/debugLayer'
-//import '@babylonjs/inspector'
-
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
 import BuildObjects from './buildobjects.js';
@@ -152,7 +149,7 @@ export default class {
     this.axes.registerClipIgnore = (mesh) => {
       this.registerClipIgnore(mesh);
     };
-    this.axes.render(50);
+    this.axes.render();
 
     this.resetCamera();
   }

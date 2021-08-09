@@ -6,7 +6,8 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build-old": "babel src -d dist",
-		"build": "webpack --mode production"
+		"build": "webpack --mode production",
+		"dev": "webpack --mode development"
 	},
 	"files": [
 		"/dist"
