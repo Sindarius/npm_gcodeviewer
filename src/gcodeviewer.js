@@ -14,6 +14,9 @@ import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
 
 
+import '@babylonjs/core/Debug/debugLayer'
+import '@babylonjs/inspector'
+
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
 import BuildObjects from './buildobjects.js';
@@ -24,6 +27,7 @@ export default class {
   constructor(canvas) {
     this.lastLoadKey = 'lastLoadFailed';
     this.fileData;
+    this.fileSize = 0;
     this.gcodeProcessor = new gcodeProcessor();
     this.maxHeight = 0;
     this.minHeight = 0;
@@ -96,7 +100,7 @@ export default class {
     this.engine.enableOfflineSupport = false;
     this.scene = new Scene(this.engine);
     if (this.debug) {
-      this.scene.debugLayer.show();
+      this.scene.debugLayer.show({ embedMode: true });
     }
     this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor());
 
@@ -110,8 +114,7 @@ export default class {
     this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
-    this.orbitCamera.maxZ = 100000000;
-    this.orbitCamera.lowerRadiusLimit = 10;
+    this.orbitCamera.maxZ = 100000;
     this.updateCameraInertiaProperties()
     //    this.orbitCamera.wheelDeltaPercentage = 0.02;
     //    this.orbitCamera.pinchDeltaPercentage = 0.02;
@@ -230,7 +233,7 @@ export default class {
     }
 
     this.fileData = fileContents;
-    this.gcodeProcessor.setExtruderColors(this.getExtruderColors());
+    this.fileSize = fileContents.length;
     this.gcodeProcessor.setProgressColor(this.getProgressColor());
     this.gcodeProcessor.scene = this.scene;
 
@@ -247,7 +250,8 @@ export default class {
     });
     this.clearLoadFlag();
 
-    this.gcodeProcessor.createScene(this.scene);
+    await this.gcodeProcessor.createScene(this.scene);
+    this.gcodeProcessor.loadingComplete();
     this.maxHeight = this.gcodeProcessor.getMaxHeight();
     this.minHeight = this.gcodeProcessor.getMinHeight();
     this.toggleTravels(this.travelVisible);
@@ -256,17 +260,15 @@ export default class {
 
   toggleTravels(visible) {
     var mesh = this.scene.getMeshByName('travels');
-    if (mesh) {
+    if (mesh !== undefined) {
       try {
         mesh.isVisible = visible;
         this.travelVisible = visible;
-      }
-      catch (ex) {
-        //Ignore as travel may be blank
+      } catch {
+        //console.log('Travel Mesh Error');
       }
     }
   }
-
   getExtruderColors() {
     let colors = localStorage.getItem('extruderColors');
     if (colors === null) {
@@ -450,15 +452,15 @@ export default class {
       this.orbitCamera.angularSensibilityX = 1000;
       this.orbitCamera.angularSensibilityY = 1000;
       this.orbitCamera.panningSensibility = 10;
-      this.orbitCamera.wheelPrecision = 1;
-
+      this.orbitCamera.wheelPrecision  = 1;
+      
     }
     else {
       this.orbitCamera.speed = 500;
       this.orbitCamera.inertia = 0;
       this.orbitCamera.panningInertia = 0;
       this.orbitCamera.inputs.attached.keyboard.angularSpeed = 0.05;
-      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility = 0.5;
+      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility =0.5;
       this.orbitCamera.inputs.attached.keyboard.panningSensibility = 0.5;
       this.orbitCamera.angularSensibilityX = 200;
       this.orbitCamera.angularSensibilityY = 200;
@@ -471,12 +473,5 @@ export default class {
     this.cameraInertia = enabled;
     localStorage.setItem('cameraInertia', enabled);
     this.updateCameraInertiaProperties()
-  }
-  dispose(){
-    this.clearScene(true);
-    this.gcodeProcessor.dispose();
-    this.gcodeProcessor = null;
-    this.scene.dispose();
-    this.engine.dispose();
   }
 }

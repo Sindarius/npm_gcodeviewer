@@ -1,3 +1,4 @@
+/*eslint-disable*/
 'use strict';
 
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
@@ -7,15 +8,19 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { SolidParticleSystem } from '@babylonjs/core/Particles/solidParticleSystem'
 import { PointsCloudSystem } from '@babylonjs/core/Particles/pointsCloudSystem'
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
-
+import { pauseProcessing, doArc } from './utils.js'
 import gcodeLine from './gcodeline';
-import { doArc } from './utils.js'
+
+import BlockRenderer from './RenderModes/blockthin';
+import VoxelRenderer from './RenderModes/voxel'
+import LineRenderer from './RenderModes/line'
 
 export const RenderMode = {
   Block: 1,
   Line: 2,
   Point: 3,
   Max: 4,
+  Voxel: 5
 };
 
 export const ColorMode = {
@@ -27,6 +32,7 @@ export default class {
   constructor() {
     this.currentPosition = new Vector3(0, 0, 0);
     this.currentColor = new Color4(0.25, 0.25, 0.25, 1);
+    this.currentTool = 0;
     this.renderVersion = RenderMode.Line;
     this.absolute = true; //Track if we are in relative or absolute mode.
     this.lines = [];
@@ -36,7 +42,7 @@ export default class {
     this.minHeight = 0;
     this.lineCount = 0;
     this.renderMode = '';
-    this.extruderCount = 5;
+    this.extruderCount = 10;
     this.layerDictionary = {};
 
     //We'll look at the last 2 layer heights for now to determine layer height.
@@ -57,20 +63,15 @@ export default class {
 
     this.lineLengthTolerance = 0.05;
 
-    this.extruderColors = [
-      new Color4(0, 1, 1, 1), //c
-      new Color4(1, 0, 1, 1), //m
-      new Color4(1, 1, 0, 1), //y
-      new Color4(0, 0, 0, 1), //k
-      new Color4(1, 1, 1, 1), //w
-    ];
+    this.tools = new Array();
+
 
     this.progressColor = new Color4(0, 1, 0, 1);
 
     //scene data
     this.lineMeshIndex = 0;
     this.scene;
-    this.renderFuncs = [];
+    this.renderFuncs = new Array();
 
     //Mesh Breaking
     this.meshBreakPoint = 20000;
@@ -134,18 +135,13 @@ export default class {
     this.loadingProgressCallback;
 
     this.hasSpindle = false;
-    this.disposed = false;
-  }
 
-  setExtruderColors(colors) {
-    if (colors === null || colors.length === 0) return;
-    this.extruderColors = [];
-    for (var idx = 0; idx < colors.length; idx++) {
-      var color = colors[idx];
+    this.voxelWidth = 1;
+    this.voxelHeight = 1;
 
-      var extruderColor = Color4.FromHexString(color.padEnd(9, 'F'));
-      this.extruderColors.push(extruderColor);
-    }
+    this.renderInstances = new Array();
+    this.meshIndex = 0;
+
   }
 
   setProgressColor(color) {
@@ -161,6 +157,14 @@ export default class {
   }
 
   setRenderQualitySettings(numberOfLines, renderQuality) {
+
+    //For ASMBL_Viewer
+    if (true) {
+      this.renderVersion = RenderMode.Block;
+      this.everyNthRow = 1;
+      return;
+    }
+
     if (renderQuality === undefined) {
       renderQuality = 1;
     }
@@ -252,11 +256,6 @@ export default class {
         }
       }
     }
-
-    //we couldn't find a working case so we'll set a triage value
-    console.log('Worst Case');
-    this.renderVersion = 2;
-    this.everyNthRow = 20;
   }
 
   initVariables() {
@@ -273,12 +272,14 @@ export default class {
     this.minFeedRate = Number.MAX_VALUE;
     this.maxFeedRate = 0;
     this.hasSpindle = false;
-    this.currentColor = this.extruderColors[0].clone();
+    this.currentColor = new Color4(1, 1, 1, 1);
   }
 
   async processGcodeFile(file, renderQuality, clearCache) {
     this.initVariables();
 
+    this.meshIndex = 0;
+    this.currentTool = 0;
     if (renderQuality === undefined || renderQuality === null) {
       renderQuality = 4;
     }
@@ -302,14 +303,13 @@ export default class {
     this.setRenderQualitySettings(this.lineCount, renderQuality);
 
     //set initial color to extruder 0
-    this.currentColor = this.extruderColors[0].clone();
+    this.currentColor = this.tools[0].color;
 
     lines.reverse();
     let filePosition = 0; //going to make this file position
     this.timeStamp = Date.now();
     while (lines.length) {
-
-      if (this.cancelLoad || this.disposed) {
+      if (this.cancelLoad) {
         this.cancelLoad = false;
         return;
       }
@@ -322,11 +322,12 @@ export default class {
         // this.processLineV2(line, filePosition);
 
       }
+
       if (Date.now() - this.timeStamp > 10) {
         if (this.loadingProgressCallback) {
-          this.loadingProgressCallback(filePosition / file.length);
+          this.loadingProgressCallback(filePosition / file.length, "Loading File...");
         }
-        await this.pauseProcessing();
+        this.timeStamp = await pauseProcessing();
       }
     }
 
@@ -335,13 +336,12 @@ export default class {
       this.createTravelLines(this.scene)
     }
 
+    this.loadingProgressCallback(1);
     file = {}; //Clear out the file.
   }
 
-  pauseProcessing() {
-    return new Promise((resolve) => setTimeout(resolve)).then(() => {
-      this.timeStamp = Date.now();
-    });
+  loadingComplete(){
+    this.renderInstances.forEach(inst => inst.isLoading = false);
   }
 
   async processLine(tokenString, lineNumber) {
@@ -362,10 +362,18 @@ export default class {
         case 'G0':
         case 'G1':
           {
-            tokens = tokenString.split(/(?=[GXYZEFUVAB])/);
+            tokens = tokenString.split(/(?=[GXYZEFUV])/);
             var line = new gcodeLine();
+            line.tool = this.currentTool;
             line.gcodeLineNumber = lineNumber;
             line.start = this.currentPosition.clone();
+            line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+            //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code
+            if (command[0] == 'G1' && !this.tools[this.currentTool].isAdditive()) {
+              line.extruding = true;
+              line.color = this.tools[this.currentTool].color.clone();
+            }
+
             for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
               let token = tokens[tokenIdx];
               switch (token[0]) {
@@ -468,11 +476,12 @@ export default class {
           let curPt = this.currentPosition.clone();
           arcResult.points.forEach((point, idx) => {
             let line = new gcodeLine();
+            line.tool = this.currentTool;
             line.gcodeLineNumber = this.gcodeLineNumber;
             line.start = curPt.clone();
             line.end = new Vector3(point.x, point.y, point.z);
-            line.extruding = extruding;
             line.color = this.currentColor.clone();
+            line.extruding = extruding;
             if (this.debug) {
               line.color = cw ? new Color4(0, 1, 1, 1) : new Color4(1, 1, 0, 1)
               if (idx == 0) {
@@ -542,10 +551,10 @@ export default class {
                 break;
             }
           }
-          for (let extruderIdx = 0; extruderIdx < 4; extruderIdx++) {
-            finalColors[0] -= (1 - this.extruderColors[extruderIdx].r) * this.extruderPercentage[extruderIdx];
-            finalColors[1] -= (1 - this.extruderColors[extruderIdx].g) * this.extruderPercentage[extruderIdx];
-            finalColors[2] -= (1 - this.extruderColors[extruderIdx].b) * this.extruderPercentage[extruderIdx];
+          for (let extruderIdx = 0; extruderIdx < this.extruderPercentage.length; extruderIdx++) {
+            finalColors[0] -= (1 - this.tools[extruderIdx].color.r) * this.extruderPercentage[extruderIdx];
+            finalColors[1] -= (1 - this.tools[extruderIdx].color.g) * this.extruderPercentage[extruderIdx];
+            finalColors[2] -= (1 - this.tools[extruderIdx].color.b) * this.extruderPercentage[extruderIdx];
           }
           this.currentColor = new Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
           break;
@@ -554,10 +563,16 @@ export default class {
     }
     else {
       //command is null so we need to check a couple other items.
-      if (tokenString.startsWith('T') && this.colorMode !== ColorMode.Feed) {
-        var extruder = Number(tokenString.substring(1)) % this.extruderCount; //For now map to extruders 0 - 4
-        if (extruder < 0) extruder = 0; // Cover the case where someone sets a tool to a -1 value
-        this.currentColor = this.extruderColors[extruder].clone();
+      if (tokenString.startsWith('T')) {
+
+        this.currentPosition.z += 10; //For ASMBL we are going to assume that there is bed movement in a macro for toolchange.
+
+        this.currentTool = Number.parseInt(tokenString.substring(1)); //Track the current selected tool (Currently used for Voxel Mode)
+        if (this.colorMode !== ColorMode.Feed) {
+          var extruder = Number(tokenString.substring(1)) % this.extruderCount; //For now map to extruders 0 - 4
+          if (extruder < 0) extruder = 0; // Cover the case where someone sets a tool to a -1 value
+          this.currentColor = this.tools[extruder].color.clone();
+        }
       }
       if (this.debug) {
         console.log(tokenString);
@@ -567,231 +582,10 @@ export default class {
     //break lines into manageable meshes at cost of extra draw calls
     if (this.lines.length >= this.meshBreakPoint) {
       //lets build the mesh
-      this.createScene(this.scene);
-      await this.pauseProcessing();
-      this.lineMeshIndex++;
+      await this.createScene(this.scene);
+      await pauseProcessing();
+      this.meshIndex++;
     }
-  }
-
-  renderLineMode(scene) {
-    let that = this;
-    let lastUpdate = Date.now();
-    let runComplete = false;
-    let meshIndex = this.lineMeshIndex;
-    this.gcodeLineIndex.push(new Array());
-
-    this.renderMode = 'Line Rendering';
-    //Extrusion
-    let lineArray = [];
-    let colorArray = [];
-    if (this.debug) {
-      console.log(this.lines[0]);
-    }
-
-    let transparentValue = this.lineVertexAlpha ? this.materialTransparency : 1;
-
-    for (var lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
-      let line = this.lines[lineIdx];
-      this.gcodeLineIndex[meshIndex].push(line.gcodeLineNumber);
-      let data = line.getPoints(scene);
-
-
-      if (this.liveTracking) {
-        data.colors[0].a = this.liveTrackingShowSolid ? transparentValue : 0
-        data.colors[1].a = this.liveTrackingShowSolid ? transparentValue : 0;
-      } else {
-        data.colors[0].a = transparentValue;
-        data.colors[1].a = transparentValue;
-      }
-
-      lineArray.push(data.points);
-      colorArray.push(data.colors);
-    }
-
-    let lineMesh = MeshBuilder.CreateLineSystem(
-      'm ' + this.lineMeshIndex,
-      {
-        lines: lineArray,
-        colors: colorArray,
-        updatable: true,
-      },
-      scene
-    );
-
-    lineArray = null;
-    colorArray = null;
-
-    lineMesh.isVisible = true;
-    lineMesh.isPickable = false;
-    lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
-    lineMesh.material = new StandardMaterial("m", scene);
-    lineMesh.material.backFaceCulling = true;
-    lineMesh.material.forceDepthWrite = true;
-    lineMesh.alphaIndex = meshIndex;
-    lineMesh.renderingGroupId = 2;
-
-
-
-    let lastRendered = 0;
-
-    let beforeRenderFunc = function () {
-
-      if (!that.liveTracking && !runComplete && !(that.gcodeFilePosition && lastRendered >= that.gcodeLineIndex[meshIndex].length - 1)) {
-        return;
-      } else if (Date.now() - lastUpdate < that.refreshTime) {
-        return;
-      } else {
-        lastUpdate = Date.now();
-
-        var colorData = lineMesh.getVerticesData(VertexBuffer.ColorKind);
-
-        if (colorData === null || colorData === undefined) {
-          console.log('Failed to Load Color VBO');
-          return;
-        }
-
-        let renderTo = -1;
-        let renderAhead = -1;
-        for (var renderToIdx = lastRendered; renderToIdx < that.gcodeLineIndex[meshIndex].length; renderToIdx++) {
-          if (that.gcodeLineIndex[meshIndex][renderToIdx] <= that.gcodeFilePosition) {
-            renderTo = renderToIdx;
-          }
-          if (that.gcodeLineIndex[meshIndex][renderToIdx] <= that.gcodeFilePosition + that.lookAheadLength) {
-            renderAhead = renderToIdx;
-          }
-        }
-
-        for (let colorIdx = lastRendered; colorIdx < renderTo; colorIdx++) {
-          let index = colorIdx * 8;
-          colorData[index] = that.progressColor.r;
-          colorData[index + 1] = that.progressColor.g;
-          colorData[index + 2] = that.progressColor.b;
-          colorData[index + 3] = that.progressColor.a;
-          colorData[index + 4] = that.progressColor.r;
-          colorData[index + 5] = that.progressColor.g;
-          colorData[index + 6] = that.progressColor.b;
-          colorData[index + 7] = that.progressColor.a;
-        }
-
-        //render ahead
-        for (let renderAheadIdx = renderTo; renderAheadIdx < renderAhead; renderAheadIdx++) {
-          let index = renderAheadIdx * 8;
-          colorData[index + 3] = 1;
-          colorData[index + 7] = 1;
-        }
-
-        lastRendered = renderTo;
-        lineMesh.updateVerticesData(VertexBuffer.ColorKind, colorData, true);
-        if (that.gcodeFilePosition === Number.MAX_VALUE) {
-          runComplete = true;
-        }
-      }
-    };
-
-    this.renderFuncs.push(beforeRenderFunc);
-    scene.registerBeforeRender(beforeRenderFunc);
-  }
-
-  renderBlockMode(scene) {
-    let that = this;
-    let lastUpdate = Date.now();
-    let runComplete = false;
-    let meshIndex = this.lineMeshIndex;
-
-    var layerHeight = Math.floor((this.currentLayerHeight - this.previousLayerHeight) * 100) / 100;
-
-    if (this.spreadLines) {
-      layerHeight /= this.spreadLineAmount;
-    }
-
-    this.renderMode = 'Mesh Rendering';
-    var box = MeshBuilder.CreateBox('box', { width: 1, height: layerHeight, depth: layerHeight * 1.2 }, scene);
-
-    let l = this.lines;
-
-
-    let particleBuilder = function (particle, i, s) {
-      l[s].renderLineV3(particle, that.lineVertexAlpha || (that.liveTracking && !that.liveTrackingShowSolid));
-
-    };
-
-    let sps = new SolidParticleSystem('gcodemodel' + meshIndex, scene, {
-      updatable: true,
-      enableMultiMaterial: true,
-      useVertexAlpha: true
-    });
-
-    sps.addShape(box, this.lines.length, {
-      positionFunction: particleBuilder,
-    });
-
-    sps.initParticles = () => {
-      for (let pIdx = 0; pIdx < sps.nbParticles; pIdx++) {
-        let particle = sps.particles[pIdx];
-        particle.props = {
-          filePosition: l[pIdx].gcodeLineNumber,
-          originalColor: l[pIdx].color.clone(),
-          frameCount: 0
-        }
-      }
-    }
-
-    sps.initParticles();
-    sps.buildMesh();
-
-
-    let transparentValue = this.lineVertexAlpha ? this.materialTransparency : 1;
-    if (this.liveTracking) {
-      transparentValue = this.liveTrackingShowSolid ? transparentValue : 0
-    }
-
-    //Build out solid and transparent material.
-    let solidMat = new StandardMaterial('solidMaterial', scene);
-    solidMat.specularColor = this.specularColor;
-    let transparentMat = new StandardMaterial('transparentMaterial', scene);
-    transparentMat.specularColor = this.specularColor;
-    transparentMat.alpha = this.liveTrackingShowSolid ? this.materialTransparency : transparentValue;
-    transparentMat.needAlphaTesting = () => true;
-    transparentMat.separateCullingPass = true;
-    transparentMat.backFaceCulling = true;
-
-    sps.setMultiMaterial([solidMat, transparentMat]);
-    sps.setParticles();
-    sps.computeSubMeshes();
-    sps.mesh.alphaIndex = 0; // this.lineMeshIndex; //meshIndex;
-    sps.mesh.isPickable = false;
-    sps.mesh.doNotSyncBoundingInfo = true;
-
-    sps.updateParticle = function (particle) {
-      particle.materialIndex = 1;
-      if (particle.props.filePosition < that.gcodeFilePosition) {
-        particle.color = particle.props.originalColor;
-        particle.materialIndex = 0;
-      }
-      else if (particle.props.filePosition < that.gcodeFilePosition + that.lookAheadLength) {
-        particle.color = that.progressColor;
-        particle.materialIndex = 0;
-      }
-    };
-
-    let beforeRenderFunc = function () {
-      if (that.liveTracking && !runComplete) {
-        if (Date.now() - lastUpdate < that.refreshTime) {
-          return;
-        } else {
-          lastUpdate = Date.now();
-          sps.setParticles();
-          sps.computeSubMeshes();
-        }
-        if (that.gcodeFilePosition === Number.MAX_VALUE) {
-          runComplete = true;
-        }
-      }
-    };
-
-    this.renderFuncs.push(beforeRenderFunc);
-    scene.registerBeforeRender(beforeRenderFunc);
-    this.scene.clearCachedVertexData();
   }
 
   renderPointMode(scene) {
@@ -813,50 +607,62 @@ export default class {
     });
   }
 
-  createScene(scene) {
+  async createScene(scene) {
+    let renderer;
     if (this.renderVersion === RenderMode.Line) {
-      this.renderLineMode(scene);
+      renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
     } else if (this.renderVersion === RenderMode.Block) {
-      this.renderBlockMode(scene);
+      renderer = new BlockRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
     } else if (this.renderVersion === RenderMode.Point) {
       this.renderPointMode(scene);
+    } else if (this.renderVersion === RenderMode.Voxel) {
+      renderer = new VoxelRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.voxelWidth, this.voxelHeight)
     }
 
+    this.renderInstances.push(renderer);
+    await renderer.render(this.lines);
     this.lines = [];
-
     this.scene.render();
   }
 
-  createTravelLines(scene) {
-    //Travels
-    var travelArray = [];
-    var travelColorArray = [];
-    for (var travelIdx = 0; travelIdx < this.travels.length; travelIdx++) {
-      let line = this.travels[travelIdx];
-      let data = line.getPoints(scene);
-      travelArray.push(data.points);
-      travelColorArray.push(data.colors);
+  chunk(arr, chunkSize) {
+    var R = [];
+    for (var i = 0, len = arr.length; i < len; i += chunkSize)
+      R.push(arr.slice(i, i + chunkSize));
+    return R;
+  }
+
+  async createTravelLines(scene) {
+    return; //Disalbe for the moment
+    let chunks = this.chunk(this.travels, 20000);
+    for(let idx = 0; idx < chunks.length; idx++){
+      let renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
+      renderer.travels = true;
+      renderer.meshIndex = this.meshIndex + 1000;
+      await renderer.render(chunks[idx]);
+      this.renderInstances.push(renderer);
     }
-    var travelMesh = MeshBuilder.CreateLineSystem(
-      'travels',
-      {
-        lines: travelArray,
-        colors: travelColorArray,
-        updatable: false,
-        useVertexAlpha: false,
-      },
-      scene
-    );
-    travelMesh.isVisible = false;
+
     this.travels = []; //clear out the travel array after creating the mesh
   }
+
   updateFilePosition(filePosition) {
+
+    /*
     if (this.liveTracking) {
       this.gcodeFilePosition = filePosition - 1;
     } else {
       this.gcodeFilePosition = 0;
-    }
+      if (this.voxelRenderer) {
+        this.voxelRenderer.updateFilePosition(filePosition);
+      }
+    }*/
+
+    //Some renderers will ahve multiple instances like block and line
+    this.renderInstances.forEach(r => r.updateFilePosition(filePosition));
+
   }
+
   doFinalPass() {
     this.liveTracking = true;
     this.gcodeFilePosition = Number.MAX_VALUE;
@@ -872,12 +678,22 @@ export default class {
       console.log('Version 2');
     }
   }
+
   unregisterEvents() {
     for (let idx = 0; idx < this.renderFuncs.length; idx++) {
       this.scene.unregisterBeforeRender(this.renderFuncs[idx]);
+      delete (this.renderFuncs[idx]);
     }
     this.renderFuncs = [];
+
+    for (let idx = 0; idx < this.renderInstances.length; idx++) {
+      delete (this.renderInstances[idx])
+    }
+
+
+    this.renderFuncs = [];
   }
+
   setLiveTracking(enabled) {
     this.liveTracking = enabled;
   }
@@ -889,11 +705,13 @@ export default class {
     localStorage.setItem('processorColorMode', mode);
     this.colorMode = mode;
   }
+
   updateMinFeedColor(value) {
     localStorage.setItem('minFeedColor', value);
     this.minFeedColorString = value;
     this.minFeedColor = Color4.FromHexString(value.padEnd(9, 'F'));
   }
+
   updateMaxFeedColor(value) {
     localStorage.setItem('maxFeedColor', value);
     this.maxFeedColorString = value;
@@ -918,8 +736,13 @@ export default class {
     localStorage.setItem('showSolid', value);
   }
 
-  dispose(){
-    this.disposed = true;
+  zeros(dimensions) {
+    var array = [];
+    for (var i = 0; i < dimensions[0]; ++i) {
+      array.push(dimensions.length == 1 ? 0 : this.zeros(dimensions.slice(1)));
+    }
+    return array;
   }
+
 
 }

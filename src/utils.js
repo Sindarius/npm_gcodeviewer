@@ -1,3 +1,4 @@
+/*eslint-disable*/
 'use strict';
 
 function getNumber(tokenNumber, value, relativeMove) {
@@ -124,3 +125,11 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
     //position is the final position
     return { position: { x: x, y: z, z: y }, points: points }; //we'll abort the render and move te position to the new position.
 }
+
+
+
+export function pauseProcessing() {
+    return new Promise((resolve) => setTimeout(resolve)).then(() => {
+      return Date.now();
+    });
+  }
