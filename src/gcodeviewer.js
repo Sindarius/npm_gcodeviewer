@@ -58,19 +58,6 @@ export default class {
     if (this.renderQuality === undefined || this.renderQuality === null) {
       this.renderQuality = 1;
     }
-
-    this.hasCacheSupport = false;
-    /*if (this.hasCacheSupport) {
-      window.caches
-        .open('gcode-viewer')
-        .then(() => {
-          console.info('Cache support enabled');
-        })
-        .catch(() => {
-          //Chrome and safari hide caches when not available. Firefox exposes it regardless so we have to force a fail to see if it is supported
-          this.hasCacheSupport = false;
-        });
-    }*/
   }
   getMaxHeight() {
     return this.maxHeight;
@@ -115,27 +102,22 @@ export default class {
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
     this.orbitCamera.maxZ = 100000;
+    this.orbitCamera.lowerRadiusLimit = 10;
     this.updateCameraInertiaProperties()
-    //    this.orbitCamera.wheelDeltaPercentage = 0.02;
-    //    this.orbitCamera.pinchDeltaPercentage = 0.02;
-    //Disabled at the moment
-    //this.flyCamera = new UniversalCamera('UniversalCamera', new Vector3(0, 0, -10), this.scene);
 
     // Add lights to the scene
-
     //var light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), this.scene);
     var light2 = new PointLight('light2', new Vector3(0, 1, -1), this.scene);
     light2.diffuse = new Color3(1, 1, 1);
     light2.specular = new Color3(1, 1, 1);
-    var that = this;
-    this.engine.runRenderLoop(function () {
+    this.engine.runRenderLoop( () => {
 
-      if (that.pause) {
+      if (this.pause) {
         return;
       }
-      that.scene.render();
+      this.scene.render();
       //Update light 2 position
-      light2.position = that.scene.cameras[0].position;
+      light2.position = this.scene.cameras[0].position;
 
     });
 
@@ -163,29 +145,6 @@ export default class {
 
   refreshUI() {
     setTimeout(function () { }, 0);
-  }
-
-  setFileName(path) {
-    if (this.hasCacheSupport) {
-      window.caches.open('gcode-viewer').then(function (cache) {
-        var pathData = new Blob([path], { type: 'text/plain' });
-        cache.put('gcodeFileName', new Response(pathData));
-      });
-    }
-  }
-
-  getFileName() {
-    if (this.hasCacheSupport) {
-      window.caches.open('gcode-viewer').then(function (cache) {
-        cache.match('gcodeData').then(function (response) {
-          response.text().then(function (text) {
-            return text;
-          });
-        });
-      });
-    } else {
-      return '';
-    }
   }
 
   resetCamera() {
@@ -224,16 +183,15 @@ export default class {
     this.clearScene();
     this.refreshUI();
 
-    let that = this;
-    if (this.hasCacheSupport) {
-      window.caches.open('gcode-viewer').then(function (cache) {
-        var gcodeData = new Blob([fileContents], { type: 'text/plain' });
-        cache.put('gcodeData', new Response(gcodeData));
-      });
+    if(!fileContents){
+      this.fileData = 0;
+      this.fileSize = 0;
+    }
+    else{
+      this.fileData = fileContents;
+      this.fileSize = fileContents.length;
     }
 
-    this.fileData = fileContents;
-    this.fileSize = fileContents.length;
     this.gcodeProcessor.setProgressColor(this.getProgressColor());
     this.gcodeProcessor.scene = this.scene;
 
@@ -243,11 +201,7 @@ export default class {
       this.clearLoadFlag();
     }
     this.setLoadFlag();
-    await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality, function () {
-      if (that.hasCacheSupport) {
-        that.fileData = ''; //free resourcs sooner
-      }
-    });
+    await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality);
     this.clearLoadFlag();
 
     await this.gcodeProcessor.createScene(this.scene);
@@ -259,32 +213,15 @@ export default class {
   }
 
   toggleTravels(visible) {
-    var mesh = this.scene.getMeshByName('travels');
-    if (mesh !== undefined) {
-      try {
-        mesh.isVisible = visible;
-        this.travelVisible = visible;
-      } catch {
-        //console.log('Travel Mesh Error');
+
+    for(const mesh of this.scene.meshes){
+      if(mesh.name ==="travels"){
+        mesh.isVisible= visible;
       }
     }
-  }
-  getExtruderColors() {
-    let colors = localStorage.getItem('extruderColors');
-    if (colors === null) {
-      colors = ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'];
-      this.saveExtruderColors(colors);
-    } else {
-      colors = colors.split(',');
-    }
-    return colors;
-  }
-  saveExtruderColors(colors) {
-    localStorage.setItem('extruderColors', colors);
-  }
-  resetExtruderColors() {
-    localStorage.removeItem('extruderColors');
-    this.getExtruderColors();
+
+    this.travelVisible = visible;
+
   }
   getProgressColor() {
     let progressColor = localStorage.getItem('progressColor');
@@ -352,28 +289,11 @@ export default class {
     this.bed.buildBed();
     this.axes.render();
   }
-  reload() {
-    return new Promise((resolve) => {
+  async reload() {
       this.clearScene();
-
-      if (this.hasCacheSupport) {
-        let that = this;
-        window.caches.open('gcode-viewer').then(function (cache) {
-          cache.match('gcodeData').then(function (response) {
-            response.text().then(function (text) {
-              that.processFile(text).then(() => {
-                resolve();
-              });
-            });
-          });
-        });
-      } else {
-        this.processFile(this.fileData).then(() => {
-          resolve();
-        });
-      }
-    });
+      await this.processFile(this.fileData);
   }
+
   getRenderMode() {
     return this.gcodeProcessor.renderMode;
   }
@@ -452,15 +372,15 @@ export default class {
       this.orbitCamera.angularSensibilityX = 1000;
       this.orbitCamera.angularSensibilityY = 1000;
       this.orbitCamera.panningSensibility = 10;
-      this.orbitCamera.wheelPrecision  = 1;
-      
+      this.orbitCamera.wheelPrecision = 1;
+
     }
     else {
       this.orbitCamera.speed = 500;
       this.orbitCamera.inertia = 0;
       this.orbitCamera.panningInertia = 0;
       this.orbitCamera.inputs.attached.keyboard.angularSpeed = 0.05;
-      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility =0.5;
+      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility = 0.5;
       this.orbitCamera.inputs.attached.keyboard.panningSensibility = 0.5;
       this.orbitCamera.angularSensibilityX = 200;
       this.orbitCamera.angularSensibilityY = 200;

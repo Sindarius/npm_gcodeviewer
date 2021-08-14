@@ -1,4 +1,3 @@
-/* eslint-disable */
 'use strict';
 
 import { Color4 } from '@babylonjs/core/Maths/math.color'
@@ -76,12 +75,10 @@ export default class {
 
 
   renderLinev4() {
-    if(this.layerHeight === 0) {    this.layerHeight = this.start.y; }
+    if(this.layerHeight === 0) {this.layerHeight = this.start.y; }
     let p = {};
     let length = this.distanceVector(this.start, this.end);
     let rot2 = Math.atan2(this.end.z - this.start.z, this.end.x - this.start.x);
-
-    ;
 
     p.matrix = Matrix.Compose(
       new Vector3(length, this.layerHeight, this.layerHeight * 2),

@@ -1,17 +1,13 @@
-/*eslint-disable*/
 'use strict';
 
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { Color4 } from '@babylonjs/core/Maths/math.color'
-import { VertexBuffer } from '@babylonjs/core/Meshes/buffer'
-import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
-import { SolidParticleSystem } from '@babylonjs/core/Particles/solidParticleSystem'
 import { PointsCloudSystem } from '@babylonjs/core/Particles/pointsCloudSystem'
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { pauseProcessing, doArc } from './utils.js'
 import gcodeLine from './gcodeline';
+import Tool from './tool'
 
-import BlockRenderer from './RenderModes/blockthin';
+import BlockRenderer from './RenderModes/block';
 import VoxelRenderer from './RenderModes/voxel'
 import LineRenderer from './RenderModes/line'
 
@@ -64,6 +60,13 @@ export default class {
     this.lineLengthTolerance = 0.05;
 
     this.tools = new Array();
+    let cmyk = ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'];
+    //Create a default set of tools
+    for (let idx = 0; idx < 5; idx++) {
+      let tool = new Tool();
+      tool.color = Color4.FromHexString(cmyk[idx]);
+      this.tools.push(new Tool())
+    }
 
 
     this.progressColor = new Color4(0, 1, 0, 1);
@@ -120,7 +123,7 @@ export default class {
     this.currentRowIdx = -1;
     this.currentZ = 0;
     this.renderTravels = true;
-    this.lineVertexAlpha = false;
+    this.vertexAlpha = false;
 
     this.forceWireMode = localStorage.getItem('forceWireMode') === "true";
 
@@ -142,10 +145,13 @@ export default class {
     this.renderInstances = new Array();
     this.meshIndex = 0;
 
+
+
   }
 
   setProgressColor(color) {
     this.progressColor = Color4.FromHexString(color.padEnd(9, 'F'));
+    this.renderInstances.forEach(r => r.progressColor = this.progressColor);
   }
 
   getMaxHeight() {
@@ -158,12 +164,6 @@ export default class {
 
   setRenderQualitySettings(numberOfLines, renderQuality) {
 
-    //For ASMBL_Viewer
-    if (true) {
-      this.renderVersion = RenderMode.Block;
-      this.everyNthRow = 1;
-      return;
-    }
 
     if (renderQuality === undefined) {
       renderQuality = 1;
@@ -284,7 +284,7 @@ export default class {
       renderQuality = 4;
     }
 
-    if (file === undefined || file === null || file.length === 0) {
+    if (!file || file.length === 0) {
       return;
     }
 
@@ -302,8 +302,11 @@ export default class {
 
     this.setRenderQualitySettings(this.lineCount, renderQuality);
 
+    if (this.tools.length == 0) {
+      this.tools.push(new Tool())
+    }
     //set initial color to extruder 0
-    this.currentColor = this.tools[0].color;
+    this.currentColor = this.tools[0].color ?? new Tool();
 
     lines.reverse();
     let filePosition = 0; //going to make this file position
@@ -336,11 +339,13 @@ export default class {
       this.createTravelLines(this.scene)
     }
 
-    this.loadingProgressCallback(1);
+    if(this.loadingProgressCallback){
+      this.loadingProgressCallback(1);
+    }
     file = {}; //Clear out the file.
   }
 
-  loadingComplete(){
+  loadingComplete() {
     this.renderInstances.forEach(inst => inst.isLoading = false);
   }
 
@@ -369,7 +374,7 @@ export default class {
             line.start = this.currentPosition.clone();
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
             //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code
-            if (command[0] == 'G1' && !this.tools[this.currentTool].isAdditive()) {
+            if (command[0] == 'G1' && (!this.tools[this.currentTool]?.isAdditive() ?? true)) {
               line.extruding = true;
               line.color = this.tools[this.currentTool].color.clone();
             }
@@ -609,16 +614,16 @@ export default class {
 
   async createScene(scene) {
     let renderer;
-    if (this.renderVersion === RenderMode.Line) {
+    if (this.renderVersion === RenderMode.Line || this.renderVersion === RenderMode.Point) {
       renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
     } else if (this.renderVersion === RenderMode.Block) {
       renderer = new BlockRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
-    } else if (this.renderVersion === RenderMode.Point) {
-      this.renderPointMode(scene);
     } else if (this.renderVersion === RenderMode.Voxel) {
       renderer = new VoxelRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.voxelWidth, this.voxelHeight)
     }
 
+    renderer.progressColor = this.progressColor;
+    renderer.vertexAlpha = this.vertexAlpha;
     this.renderInstances.push(renderer);
     await renderer.render(this.lines);
     this.lines = [];
@@ -633,9 +638,8 @@ export default class {
   }
 
   async createTravelLines(scene) {
-    return; //Disalbe for the moment
     let chunks = this.chunk(this.travels, 20000);
-    for(let idx = 0; idx < chunks.length; idx++){
+    for (let idx = 0; idx < chunks.length; idx++) {
       let renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
       renderer.travels = true;
       renderer.meshIndex = this.meshIndex + 1000;
@@ -647,20 +651,8 @@ export default class {
   }
 
   updateFilePosition(filePosition) {
-
-    /*
-    if (this.liveTracking) {
-      this.gcodeFilePosition = filePosition - 1;
-    } else {
-      this.gcodeFilePosition = 0;
-      if (this.voxelRenderer) {
-        this.voxelRenderer.updateFilePosition(filePosition);
-      }
-    }*/
-
     //Some renderers will ahve multiple instances like block and line
     this.renderInstances.forEach(r => r.updateFilePosition(filePosition));
-
   }
 
   doFinalPass() {
@@ -736,13 +728,28 @@ export default class {
     localStorage.setItem('showSolid', value);
   }
 
-  zeros(dimensions) {
-    var array = [];
-    for (var i = 0; i < dimensions[0]; ++i) {
-      array.push(dimensions.length == 1 ? 0 : this.zeros(dimensions.slice(1)));
-    }
-    return array;
+  setAlpha(alpha) {
+    this.vertexAlpha = alpha;
   }
+
+  resetTools(){
+    this.tools = new Array();
+  }
+
+  addTool(color, diameter){
+    let tool = new Tool();
+    tool.color =  Color4.FromHexString(color.padEnd(9, 'F'));
+    tool.diameter = diameter;
+    this.tools.push(tool);
+  }
+
+  updateTool(color, diameter, index){
+    if(index < this.tools.length){
+      this.tools[index].color= Color4.FromHexString(color.padEnd(9, 'F'));
+      this.tools[index].diameter = diameter;
+    }
+  }
+
 
 
 }

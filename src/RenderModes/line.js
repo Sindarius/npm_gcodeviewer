@@ -22,8 +22,7 @@ export default class LineRenderer extends BaseRenderer {
     let colorArray = [];
     let additive = [];
     let completed = [];
-
-    //  let transparentValue = this.lineVertexAlpha ? this.materialTransparency : 1;
+    let transparentValue = this.vertexAlpha ? 0.25 : 0
 
     for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
       let line = lines[lineIdx];
@@ -38,7 +37,7 @@ export default class LineRenderer extends BaseRenderer {
     }
 
     let lineMesh = MeshBuilder.CreateLineSystem(
-      'lineMesh',
+      this.travels ? 'travels' : 'lineMesh',
       {
         lines: lineArray,
         colors: colorArray,
@@ -46,6 +45,8 @@ export default class LineRenderer extends BaseRenderer {
       },
       this.scene
     );
+
+
 
     lineArray = null;
 
@@ -62,7 +63,6 @@ export default class LineRenderer extends BaseRenderer {
     let maxFilePosition = gcodeLineIndex.slice(-1)[0];
 
     let lastPosition = 0;
-    let firstPass = true;
     let scrubbing = false;
     let lastRendered = 0;
     let updateLines = () => {
@@ -77,19 +77,29 @@ export default class LineRenderer extends BaseRenderer {
       let renderAhead = -1;
 
       if (scrubbing) {
-        for (let colorIdx = 0; colorIdx < gcodeLineIndex.length; colorIdx++) {
-          let index = colorIdx * 8;
+      
+        for (let idx = 0; idx < gcodeLineIndex.length; idx++) {
+          let colorIdx = idx * 8;
           if (this.travels) {
-            colorData[index + 3] = 0;
-            colorData[index + 7] = 0;
+            colorData[colorIdx + 3] = 0;
+            colorData[colorIdx + 7] = 0;
           }
           else {
-            colorData[index + 3] = additive[colorIdx] ? 0.05 : 0;
-            colorData[index + 7] = additive[colorIdx] ? 0.05 : 0;
+            if (gcodeLineIndex[idx] < this.currentFilePosition) {
+              colorArray[idx][0].toArray(colorData, colorIdx);
+              colorArray[idx][1].toArray(colorData, colorIdx + 4);
+              colorData[colorIdx + 3] = 1;
+              colorData[colorIdx + 7] = 1;
+              completed[idx] = true;
+            } else {
+              colorData[colorIdx + 3] = additive[idx] ? transparentValue : 0;
+              colorData[colorIdx + 7] = additive[idx] ? transparentValue : 0;
+              completed[idx] = false;
+            }
           }
-          completed[colorIdx] = false;
         }
         lastRendered = 0;
+        lineMesh.updateVerticesData(VertexBuffer.ColorKind, colorData, true);
       }
 
 
@@ -133,6 +143,7 @@ export default class LineRenderer extends BaseRenderer {
             completed[colorIdx] = true;
           }
         } else {
+          /* Subtractive rendering */
           if (completed[colorIdx]) continue;
           if (colorData[index + 3] === 0) {
             colorData[index] = 1;
@@ -163,6 +174,7 @@ export default class LineRenderer extends BaseRenderer {
         colorData[index + 3] = 1;
         colorData[index + 7] = 1;
       }
+
       lineMesh.updateVerticesData(VertexBuffer.ColorKind, colorData, true);
     }
 
@@ -171,10 +183,10 @@ export default class LineRenderer extends BaseRenderer {
       if (this.isLoading || Date.now() - timeStamp < 200) return;
       timeStamp = Date.now();
 
-      if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || firstPass) {
+      if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance) {
         scrubbing = true;
+        lastPosition = 0
         updateLines();
-        firstPass = false;
       } else {
         if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
           scrubbing = false;
@@ -183,8 +195,6 @@ export default class LineRenderer extends BaseRenderer {
       }
       lastPosition = this.currentFilePosition;
     }
-
-    this.isLoading = false;
     this.renderFuncs.push(beforeRenderFunc);
     this.scene.registerBeforeRender(beforeRenderFunc);
   }

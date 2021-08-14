@@ -14,6 +14,7 @@ export class BaseRenderer {
         this.scrubDistance = 30000;
         this.progressColor = new Color4(0,1,0,1);
         this.isLoading = true;
+        this.vertexAlpha = false;
     }
 
         //Used for rendering visual
