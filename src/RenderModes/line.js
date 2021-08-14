@@ -83,6 +83,7 @@ export default class LineRenderer extends BaseRenderer {
           if (this.travels) {
             colorData[colorIdx + 3] = 0;
             colorData[colorIdx + 7] = 0;
+            completed[idx] = gcodeLineIndex[idx] < this.currentFilePosition;
           }
           else {
             if (gcodeLineIndex[idx] < this.currentFilePosition) {
@@ -114,58 +115,60 @@ export default class LineRenderer extends BaseRenderer {
 
       let startIdx = completed.findIndex(l => l == false);
 
-      for (let colorIdx = startIdx; colorIdx < renderTo; colorIdx++) {
-        let index = colorIdx * 8;
-        if (additive[colorIdx]) {
-          if (colorData[index + 3] <= 0.5) {
-            colorData[index] = this.progressColor.r;
-            colorData[index + 1] = this.progressColor.g;
-            colorData[index + 2] = this.progressColor.b;
-            colorData[index + 3] = 0.9;
-            colorData[index + 4] = this.progressColor.r;
-            colorData[index + 5] = this.progressColor.g;
-            colorData[index + 6] = this.progressColor.b;
-            colorData[index + 7] = 0.9;
+      for (let idx = startIdx; idx < renderTo; idx++) {
+        let colorIdx = idx * 8;
+        if (additive[idx]) {
+          /*Additive Rendering*/
+          if(completed[idx]) continue;
+          if (colorData[colorIdx + 3] <= 0.5) {
+            colorData[colorIdx] = this.progressColor.r;
+            colorData[colorIdx + 1] = this.progressColor.g;
+            colorData[colorIdx + 2] = this.progressColor.b;
+            colorData[colorIdx + 3] = 0.9;
+            colorData[colorIdx + 4] = this.progressColor.r;
+            colorData[colorIdx + 5] = this.progressColor.g;
+            colorData[colorIdx + 6] = this.progressColor.b;
+            colorData[colorIdx + 7] = 0.9;
           }
-          else if (colorData[index + 3] < 1) {
-            colorData[index + 3] += 0.02;
-            colorData[index + 7] += 0.02;
+          else if (colorData[colorIdx + 3] < 1) {
+            colorData[colorIdx + 3] += 0.02;
+            colorData[colorIdx + 7] += 0.02;
           }
-          else if (colorData[index + 3] >= 1) {
-            colorData[index] = colorArray[colorIdx][0].r;
-            colorData[index + 1] = colorArray[colorIdx][0].g;
-            colorData[index + 2] = colorArray[colorIdx][0].b;
-            colorData[index + 3] = 1;
-            colorData[index + 4] = colorArray[colorIdx][1].r;
-            colorData[index + 5] = colorArray[colorIdx][1].g;
-            colorData[index + 6] = colorArray[colorIdx][1].b;
-            colorData[index + 7] = 1;
-            completed[colorIdx] = true;
+          else if (colorData[colorIdx + 3] >= 1) {
+            colorData[colorIdx] = colorArray[idx][0].r;
+            colorData[colorIdx + 1] = colorArray[idx][0].g;
+            colorData[colorIdx + 2] = colorArray[idx][0].b;
+            colorData[colorIdx + 3] = 1;
+            colorData[colorIdx + 4] = colorArray[idx][1].r;
+            colorData[colorIdx + 5] = colorArray[idx][1].g;
+            colorData[colorIdx + 6] = colorArray[idx][1].b;
+            colorData[colorIdx + 7] = 1;
+            completed[idx] = true;
           }
         } else {
           /* Subtractive rendering */
-          if (completed[colorIdx]) continue;
-          if (colorData[index + 3] === 0) {
-            colorData[index] = 1;
-            colorData[index + 1] = 0;
-            colorData[index + 2] = 0;
-            colorData[index + 3] = 0.9;
-            colorData[index + 4] = 1;
-            colorData[index + 5] = 0;
-            colorData[index + 6] = 0;
-            colorData[index + 7] = 0.9;
+          if (completed[idx]) continue;
+          if (colorData[colorIdx + 3] === 0) {
+            colorData[colorIdx] = 1;
+            colorData[colorIdx + 1] = 0;
+            colorData[colorIdx + 2] = 0;
+            colorData[colorIdx + 3] = 0.9;
+            colorData[colorIdx + 4] = 1;
+            colorData[colorIdx + 5] = 0;
+            colorData[colorIdx + 6] = 0;
+            colorData[colorIdx + 7] = 0.9;
           }
-          else if (colorData[index + 3] < 1) {
-            colorData[index + 3] += 0.02;
-            colorData[index + 7] += 0.02;
+          else if (colorData[colorIdx + 3] < 1) {
+            colorData[colorIdx + 3] += 0.02;
+            colorData[colorIdx + 7] += 0.02;
           }
           else {
-            colorData[index + 3] = 0.0001;
-            colorData[index + 7] = 0.0001;
-            completed[colorIdx] = true;
+            colorData[colorIdx + 3] = 0.0001;
+            colorData[colorIdx + 7] = 0.0001;
+            completed[idx] = true;
           }
         }
-        lastRendered = colorIdx;
+        lastRendered = idx;
       }
 
       //render ahead
