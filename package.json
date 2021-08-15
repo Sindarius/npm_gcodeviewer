@@ -1,6 +1,6 @@
 {
 	"name": "@sindarius/gcodeviewer",
-	"version": "2.0.2",
+	"version": "2.0.3",
 	"description": "GCode Visualization Package",
 	"module": "dist/sindarius-gcodeviewer.es.js",
 	"sideEffects": false,
@@ -33,7 +33,5 @@
 		"@babylonjs/materials": "^4.2.0",
 		"d3": "^7.0.0"
 	},
-	"devDependencies": {
-
-	}
+	"devDependencies": {}
 }
