@@ -336,7 +336,7 @@ export default class {
 
     //build the travel mesh
     if (this.renderTravels) {
-      this.createTravelLines(this.scene)
+      await this.createTravelLines(this.scene)
     }
 
     if(this.loadingProgressCallback){
@@ -646,7 +646,6 @@ export default class {
       await renderer.render(chunks[idx]);
       this.renderInstances.push(renderer);
     }
-
     this.travels = []; //clear out the travel array after creating the mesh
   }
 

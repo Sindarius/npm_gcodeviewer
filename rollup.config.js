@@ -27,29 +27,5 @@ export default [
                 output: { quote_style: 1 }
               })
         ]
-    },
-    {
-        input: 'src/index.js',
-        output: {
-            name: '',
-            file: 'dist/sindarius-gcodeviewer.js',
-            format: 'cjs',
-            exports : 'named',
-        },
-        plugins: [
-          //  resolve(),
-            commonjs(),
-//            babel({ babelHelpers: 'bundled'  }),
-            terser({
-                ecma: 2018,
-                mangle: { toplevel: false },
-                compress: {
-                  unsafe_arrows: true,
-                },
-                output: { quote_style: 1 }
-              })
-            
-        ]
     }
-
 ];
