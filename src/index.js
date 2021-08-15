@@ -1,5 +1,6 @@
 import GCodeViewer from './gcodeviewer'
-export default GCodeViewer;
-export { default as Axes } from './axes'
-export { default as BuildObjects } from './buildobjects'
-export { default as Tool } from './tool'
+import Axes from './axes'
+import BuildObjects from './buildobjects'
+import Tool from './tool'
+
+export { Axes, BuildObjects, Tool, GCodeViewer as default }

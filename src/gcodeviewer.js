@@ -14,8 +14,8 @@ import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
 
 
-import '@babylonjs/core/Debug/debugLayer'
-import '@babylonjs/inspector'
+//import '@babylonjs/core/Debug/debugLayer'
+//import '@babylonjs/inspector'
 
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
@@ -87,7 +87,7 @@ export default class {
     this.engine.enableOfflineSupport = false;
     this.scene = new Scene(this.engine);
     if (this.debug) {
-      this.scene.debugLayer.show({ embedMode: true });
+     // this.scene.debugLayer.show({ embedMode: true });
     }
     this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor());
 

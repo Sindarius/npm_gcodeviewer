@@ -6,7 +6,6 @@ import { Space } from '@babylonjs/core/Maths/math.axis'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer'
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
-
 import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
 
 export const RenderBedMode = {
