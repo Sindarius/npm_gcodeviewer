@@ -40,7 +40,6 @@ export default class BlockTIRenderer extends BaseRenderer {
         let material = new StandardMaterial("mat", this.scene);
         box.material = material;
         if(this.vertexAlpha){
-            console.log('alpha');
             box.hasVertexAlpha = true;
             box.material.forceDepthWrite = true;
             box.material.alpha = 0.99;
