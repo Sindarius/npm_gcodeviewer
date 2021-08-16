@@ -3,6 +3,7 @@ import { BaseRenderer } from './baserenderer';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
 
 export default class BlockTIRenderer extends BaseRenderer {
 
@@ -35,7 +36,7 @@ export default class BlockTIRenderer extends BaseRenderer {
         }
 
         //build the box
-        let box = MeshBuilder.CreateBox('box', { width: 1, height: 1, depth: 1}, this.scene);
+        let box = MeshBuilder.CreateBox('box', { width: 1, height: 1, depth: 1, sideOrientation : Mesh.FRONTSIDE }, this.scene);
         let material = new StandardMaterial("mat", this.scene);
         box.material = material;
         if(this.vertexAlpha){
@@ -43,8 +44,6 @@ export default class BlockTIRenderer extends BaseRenderer {
             box.hasVertexAlpha = true;
             box.material.forceDepthWrite = true;
             box.material.alpha = 0.99;
-            box.material.alpha
-
         }
         return box;
     }

@@ -74,18 +74,20 @@ export default class {
   }
 
 
-  renderLinev4() {
+  renderLinev4(nozzleSize = 0.4) {
     if(this.layerHeight === 0) {this.layerHeight = this.start.y; }
     let p = {};
     let length = this.distanceVector(this.start, this.end);
     let rot2 = Math.atan2(this.end.z - this.start.z, this.end.x - this.start.x);
 
+    let len = length + 0.2; //add a little extra to each end to smooth out the hard corners a little
+
     p.matrix = Matrix.Compose(
-      new Vector3(length, this.layerHeight, this.layerHeight * 2),
+      new Vector3( len, this.layerHeight, nozzleSize),
       Quaternion.FromEulerAngles(0,-rot2, 0),
-      new Vector3(this.start.x + (length / 2) * Math.cos(rot2),
+      new Vector3(this.start.x + ( len / 2) * Math.cos(rot2),
        this.start.y, 
-       this.start.z + (length / 2) * Math.sin(rot2)));
+       this.start.z + ( len / 2) * Math.sin(rot2)));
     p.color = this.color;
     p.props = {
       gcodeLineNumber: this.gcodeLineNumber,
