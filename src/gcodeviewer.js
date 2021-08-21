@@ -341,6 +341,7 @@ export default class {
     this.toolCursorMesh.rotate(Axis.X, Math.PI, Space.LOCAL);
     this.toolCursorMesh.scaling = new Vector3(3, 3, 3);
     this.toolCursorMesh.isVisible = this.toolCursorVisible;
+    this.toolCursorMesh.renderingGroupId = 2;
     this.registerClipIgnore(this.toolCursorMesh);
   }
   updateRenderQuality(renderQuality) {
