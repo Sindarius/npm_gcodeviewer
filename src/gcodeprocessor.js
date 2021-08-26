@@ -5,7 +5,7 @@ import { Color4 } from '@babylonjs/core/Maths/math.color'
 import { PointsCloudSystem } from '@babylonjs/core/Particles/pointsCloudSystem'
 import { pauseProcessing, doArc } from './utils.js'
 import gcodeLine from './gcodeline';
-import Tool from './tool'
+import Tool, { ToolType } from './tool'
 
 import BlockRenderer from './RenderModes/block';
 import VoxelRenderer from './RenderModes/voxel'
@@ -163,7 +163,6 @@ export default class {
   }
 
   setRenderQualitySettings(numberOfLines, renderQuality) {
-
 
     if (renderQuality === undefined) {
       renderQuality = 1;
@@ -735,10 +734,11 @@ export default class {
     this.tools = new Array();
   }
 
-  addTool(color, diameter){
+  addTool(color, diameter, toolType = ToolType.Extruder){
     let tool = new Tool();
     tool.color =  Color4.FromHexString(color.padEnd(9, 'F'));
     tool.diameter = diameter;
+    tool.additive = toolType;
     this.tools.push(tool);
   }
 
