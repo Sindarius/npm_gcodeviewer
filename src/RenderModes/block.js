@@ -158,13 +158,15 @@ export default class BlockTIRenderer extends BaseRenderer {
             if (this.isLoading || Date.now() - timeStamp < 200) return;
             timeStamp = Date.now();
 
-            if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance) {
+            if ((Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance) || this.forceRedraw) {
                 scrubbing = true;
+                this.forceRedraw = false;
                 lastPosition = 0;
                 for (let idx = 0; idx < completed.length; idx++) {
                     completed[idx] = false;
                 }
                 updateSegments();
+                
             } else if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
                 scrubbing = false;
                 updateSegments();

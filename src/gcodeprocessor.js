@@ -749,6 +749,13 @@ export default class {
     }
   }
 
+  /* Force reset the render instances */
+  forceRedraw(){
+    for (let idx = 0; idx < this.renderInstances.length; idx++){
+      this.renderInstances[idx].forceRedraw = true;
+    }
+  }
+
 
 
 }

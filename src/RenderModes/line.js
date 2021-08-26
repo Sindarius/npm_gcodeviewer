@@ -77,7 +77,7 @@ export default class LineRenderer extends BaseRenderer {
       let renderAhead = -1;
 
       if (scrubbing) {
-      
+
         for (let idx = 0; idx < gcodeLineIndex.length; idx++) {
           let colorIdx = idx * 8;
           if (this.travels) {
@@ -119,7 +119,7 @@ export default class LineRenderer extends BaseRenderer {
         let colorIdx = idx * 8;
         if (additive[idx]) {
           /*Additive Rendering*/
-          if(completed[idx]) continue;
+          if (completed[idx]) continue;
           if (colorData[colorIdx + 3] <= 0.5) {
             colorData[colorIdx] = this.progressColor.r;
             colorData[colorIdx + 1] = this.progressColor.g;
@@ -186,10 +186,12 @@ export default class LineRenderer extends BaseRenderer {
       if (this.isLoading || Date.now() - timeStamp < 200) return;
       timeStamp = Date.now();
 
-      if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance) {
+      if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || this.forceRedraw) {
+        this.forceRedraw = false;
         scrubbing = true;
         lastPosition = 0
         updateLines();
+
       } else {
         if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
           scrubbing = false;

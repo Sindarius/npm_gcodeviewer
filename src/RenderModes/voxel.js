@@ -340,9 +340,9 @@ export default class VoxelRenderer extends BaseRenderer {
                 }
                 timeStamp = Date.now();
                 //Deal with time scrubbing
-                if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || firstPass) {
+                if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || firstPass || this.forceRedraw) {
                     scrubbing = true;
-
+                    this.forceRedraw = false;
                     //reset flags
                     for (let particleIdx = 0; particleIdx < layerParticles.length; particleIdx++) {
                         let particle = layerParticles[particleIdx];

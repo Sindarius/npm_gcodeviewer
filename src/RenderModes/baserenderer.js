@@ -15,6 +15,7 @@ export class BaseRenderer {
         this.progressColor = new Color4(0,1,0,1);
         this.isLoading = true;
         this.vertexAlpha = false;
+        this.forceRedraw = false;
     }
 
         //Used for rendering visual
