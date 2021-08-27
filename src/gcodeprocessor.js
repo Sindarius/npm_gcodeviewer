@@ -679,9 +679,7 @@ export default class {
     for (let idx = 0; idx < this.renderInstances.length; idx++) {
       delete (this.renderInstances[idx])
     }
-
-
-    this.renderFuncs = [];
+    this.renderInstances = [];
   }
 
   setLiveTracking(enabled) {
