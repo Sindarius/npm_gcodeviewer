@@ -8,6 +8,7 @@ import gcodeLine from './gcodeline';
 import Tool, { ToolType } from './tool'
 
 import BlockRenderer from './RenderModes/block';
+import CylinderRenderer from './RenderModes/cylinder';
 import VoxelRenderer from './RenderModes/voxel'
 import LineRenderer from './RenderModes/line'
 
@@ -145,6 +146,7 @@ export default class {
     this.renderInstances = new Array();
     this.meshIndex = 0;
 
+    this.highQualityExtrusion = false;
 
 
   }
@@ -338,7 +340,7 @@ export default class {
       await this.createTravelLines(this.scene)
     }
 
-    if(this.loadingProgressCallback){
+    if (this.loadingProgressCallback) {
       this.loadingProgressCallback(1);
     }
     file = {}; //Clear out the file.
@@ -616,7 +618,14 @@ export default class {
     if (this.renderVersion === RenderMode.Line || this.renderVersion === RenderMode.Point) {
       renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
     } else if (this.renderVersion === RenderMode.Block) {
-      renderer = new BlockRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
+
+      if (this.highQualityExtrusion) {
+        renderer = new CylinderRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
+      }
+      else {
+        renderer = new BlockRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
+      }
+
     } else if (this.renderVersion === RenderMode.Voxel) {
       renderer = new VoxelRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.voxelWidth, this.voxelHeight)
     }
@@ -728,32 +737,35 @@ export default class {
     this.vertexAlpha = alpha;
   }
 
-  resetTools(){
+  resetTools() {
     this.tools = new Array();
   }
 
-  addTool(color, diameter, toolType = ToolType.Extruder){
+  addTool(color, diameter, toolType = ToolType.Extruder) {
     let tool = new Tool();
-    tool.color =  Color4.FromHexString(color.padEnd(9, 'F'));
+    tool.color = Color4.FromHexString(color.padEnd(9, 'F'));
     tool.diameter = diameter;
     tool.additive = toolType;
     this.tools.push(tool);
   }
 
-  updateTool(color, diameter, index){
-    if(index < this.tools.length){
-      this.tools[index].color= Color4.FromHexString(color.padEnd(9, 'F'));
+  updateTool(color, diameter, index) {
+    if (index < this.tools.length) {
+      this.tools[index].color = Color4.FromHexString(color.padEnd(9, 'F'));
       this.tools[index].diameter = diameter;
     }
   }
 
   /* Force reset the render instances */
-  forceRedraw(){
-    for (let idx = 0; idx < this.renderInstances.length; idx++){
+  forceRedraw() {
+    for (let idx = 0; idx < this.renderInstances.length; idx++) {
       this.renderInstances[idx].forceRedraw = true;
     }
   }
 
+  useHighQualityExtrusion(active) {
+    this.highQualityExtrusion = active;
+  }
 
 
-}
+} 
