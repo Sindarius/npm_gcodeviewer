@@ -36,7 +36,7 @@ export default class VoxelRenderer extends BaseRenderer {
         this.clearColor = new Color4(1, 0, 0, 0);
 
         this.additiveColor = new Color4(0, 1, 0, 0.8);
-        this.subtractiveColor =new Color4(1, 0, 0, 0.8);
+        this.subtractiveColor = new Color4(1, 0, 0, 0.8);
     }
 
 
@@ -186,7 +186,7 @@ export default class VoxelRenderer extends BaseRenderer {
 
         this.loadingProgressCallback(lineIdx / lines.length, "Rendering Voxel...");
 
-        
+
 
         let particleCount = 0;
         /********************************************************************************************** */
@@ -198,14 +198,22 @@ export default class VoxelRenderer extends BaseRenderer {
 
             let minFilePosition = 999999999999;
             let maxFilePosition = -999999999999;
+
+            let eventIndexes = [];
+
+            let voxelCount = 0;
             for (let [x, zValues] of Object.entries(layers[vy])) {
                 for (let [z, voxel] of Object.entries(zValues)) {
+
 
                     if (voxel.voxelEvents[0].filePosition < minFilePosition)
                         minFilePosition = voxel.voxelEvents[0].filePosition;
 
                     if (voxel.voxelEvents.slice()[0].filePosition > maxFilePosition)
                         maxFilePosition = voxel.voxelEvents[0].filePosition;
+
+                    eventIndexes.push(...voxel.voxelEvents.map(t => t.filePosition));
+
                     voxel.color.a = 1;
                     let p = {
                         matrix: Matrix.Identity(),
@@ -217,6 +225,11 @@ export default class VoxelRenderer extends BaseRenderer {
                     layerParticles.push(p)
                 }
             }
+
+            let currentEventIndex = 0;
+            eventIndexes = eventIndexes.sort(function (a, b) { return a - b });
+            eventIndexes = [...new Set(eventIndexes)];
+
             particleCount += layerParticles.length;
             layers[vy] = null;
             let box = this.buildBox();
@@ -261,11 +274,10 @@ export default class VoxelRenderer extends BaseRenderer {
 
                     if (scrubbing) {
                         this.clearColor.toArray(colorData, particleIdx * 4);
-                        if(this.hasSubtractive){
+                        if (this.hasSubtractive) {
                             this.lostInSpace.copyToArray(matrixData, particleIdx * 16);
                         }
                     }
-
 
                     var lastEvent = particle.voxelEvents.filter(ev => ev.filePosition < this.currentFilePosition).slice(-1)[0];
 
@@ -274,7 +286,7 @@ export default class VoxelRenderer extends BaseRenderer {
                     if (lastEvent.add) {
                         if (lastEvent.filePosition > lastPosition && lastEvent.filePosition <= this.currentFilePosition) {
                             particle.lastDrawnCount = 0;
-                            if(this.hasSubtractive){
+                            if (this.hasSubtractive) {
                                 particle.matrix.copyToArray(matrixData, particleIdx * 16);
                             }
                         }
@@ -330,6 +342,7 @@ export default class VoxelRenderer extends BaseRenderer {
             let lastPosition = 0;
             let firstPass = true;
             let scrubbing = false;
+            let timeoutTicks = Number.MAX_VALUE;
 
             let timeStamp = Date.now()
             //Start particle animation
@@ -341,6 +354,7 @@ export default class VoxelRenderer extends BaseRenderer {
                 timeStamp = Date.now();
                 //Deal with time scrubbing
                 if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || firstPass || this.forceRedraw) {
+                    currentEventIndex = 0;
                     scrubbing = true;
                     this.forceRedraw = false;
                     //reset flags
@@ -348,15 +362,27 @@ export default class VoxelRenderer extends BaseRenderer {
                         let particle = layerParticles[particleIdx];
                         particle.voxelEvents.forEach(p => p.complete = false);
                     }
-
                     updateVoxels();
                     firstPass = false;
-                } else {
-                    if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
-                        scrubbing = false;
-                        updateVoxels();
-                    }
                 }
+                else if (currentEventIndex < eventIndexes.length - 1 && eventIndexes[currentEventIndex] < this.currentFilePosition) {
+                    scrubbing = false;
+                    timeoutTicks = 0;
+                    updateVoxels();
+                    for (let idx = currentEventIndex; idx < eventIndexes.length; idx++) {
+                        currentEventIndex = idx;
+                        if (eventIndexes[idx] > this.currentFilePosition) {
+                            break;
+                        }
+
+                    }
+
+                }
+                else if (timeoutTicks < 10) {
+                    timeoutTicks++;
+                    updateVoxels();
+                }
+
                 lastPosition = this.currentFilePosition;
             }
 
@@ -375,7 +401,7 @@ export default class VoxelRenderer extends BaseRenderer {
             }
         }
 
-        this.isLoading= false;
+        this.isLoading = false;
         this.loadingProgressCallback(1);
         layers = null;
     }

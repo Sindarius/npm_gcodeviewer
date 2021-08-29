@@ -1,4 +1,5 @@
 import { Color4 } from "@babylonjs/core/Maths/math.color";
+import "@babylonjs/core/Meshes/thinInstanceMesh";
 
 export class BaseRenderer {
     constructor(scene, specularColor, loadingProgressCallback, renderFuncs, tools) {

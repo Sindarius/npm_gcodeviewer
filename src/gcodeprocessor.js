@@ -142,11 +142,13 @@ export default class {
 
     this.voxelWidth = 1;
     this.voxelHeight = 1;
+    this.forceVoxels = false;
 
     this.renderInstances = new Array();
     this.meshIndex = 0;
 
     this.highQualityExtrusion = false;
+
 
 
   }
@@ -165,6 +167,13 @@ export default class {
   }
 
   setRenderQualitySettings(numberOfLines, renderQuality) {
+
+
+    if(this.forceVoxels){
+      this.renderVersion = RenderMode.Voxel;
+      this.meshBreakPoint = Number.MAX_VALUE;
+      return;
+    }
 
     if (renderQuality === undefined) {
       renderQuality = 1;
@@ -618,14 +627,12 @@ export default class {
     if (this.renderVersion === RenderMode.Line || this.renderVersion === RenderMode.Point) {
       renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
     } else if (this.renderVersion === RenderMode.Block) {
-
       if (this.highQualityExtrusion) {
         renderer = new CylinderRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
       }
       else {
         renderer = new BlockRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
       }
-
     } else if (this.renderVersion === RenderMode.Voxel) {
       renderer = new VoxelRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.voxelWidth, this.voxelHeight)
     }
@@ -767,5 +774,9 @@ export default class {
     this.highQualityExtrusion = active;
   }
 
+  setVoxelMode(active){
+    this.forceVoxels = active;
+  }
 
-} 
+
+}

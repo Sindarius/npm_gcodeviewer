@@ -1,6 +1,6 @@
 /*eslint-disable*/
 
-import { Color4 } from '@babylonjs/core/Maths/math.color';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { BaseRenderer } from './baserenderer';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
@@ -48,6 +48,7 @@ export default class CylinderRenderer extends BaseRenderer {
         //box.rotate(new Vector3(0,0,1), Math.PI/2, Space.LOCAL);
 
         let material = new StandardMaterial("mat", this.scene);
+        material.specularColor = new Color3(0,0,0);
         cylinder.material = material;
         if(this.vertexAlpha){
             cylinder.hasVertexAlpha = true;

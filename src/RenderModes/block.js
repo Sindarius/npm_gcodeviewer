@@ -1,4 +1,4 @@
-import { Color4 } from '@babylonjs/core/Maths/math.color';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { BaseRenderer } from './baserenderer';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
@@ -36,10 +36,11 @@ export default class BlockTIRenderer extends BaseRenderer {
         }
 
         //build the box
-        let box = MeshBuilder.CreateBox('box', { width: 1, height: 1, depth: 1, sideOrientation : Mesh.FRONTSIDE }, this.scene);
+        let box = MeshBuilder.CreateBox('box', { width: 1, height: 1, depth: 1, sideOrientation: Mesh.FRONTSIDE }, this.scene);
         let material = new StandardMaterial("mat", this.scene);
+        material.specularColor = new Color3(0, 0, 0);
         box.material = material;
-        if(this.vertexAlpha){
+        if (this.vertexAlpha) {
             box.hasVertexAlpha = true;
             box.material.forceDepthWrite = true;
             box.material.alpha = 0.99;
@@ -49,8 +50,6 @@ export default class BlockTIRenderer extends BaseRenderer {
 
 
     render(lines) {
-
-
         let segments = new Array();
         let gcodeLineIndex = new Array(); //file index when segmenet is rendered
         let transparentValue = this.vertexAlpha ? 0.05 : 0;
@@ -77,7 +76,7 @@ export default class BlockTIRenderer extends BaseRenderer {
             let segment = segments[segIdx];
             segment.matrix.copyToArray(matrixData, segIdx * 16);
             segment.color.toArray(colorData, segIdx * 4)
-            colorData[segIdx*4 + 3]= transparentValue;
+            colorData[segIdx * 4 + 3] = transparentValue;
             completed.push(false);
         }
 
@@ -103,10 +102,10 @@ export default class BlockTIRenderer extends BaseRenderer {
                         completed[idx] = true;
                     }
                     else {
-                        if(transparentValue == 0){
+                        if (transparentValue == 0) {
                             this.lostInSpace.copyToArray(matrixData, idx * 16);
                         }
-                        else{
+                        else {
                             segments[idx].matrix.copyToArray(matrixData, idx * 16);
                         }
                         colorData[colorIdx + 3] = transparentValue;
@@ -115,10 +114,10 @@ export default class BlockTIRenderer extends BaseRenderer {
                     continue;
                 }
 
-                
+
                 if (completed[idx]) continue;
 
-                
+
                 if (gcodeLineIndex[idx] < this.currentFilePosition && colorData[colorIdx + 3] < 0.5) {
                     this.progressColor.toArray(colorData, colorIdx);
                     colorData[colorIdx + 3] = 0.9;
@@ -168,15 +167,15 @@ export default class BlockTIRenderer extends BaseRenderer {
                     completed[idx] = false;
                 }
                 updateSegments();
-                
+
             } else if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
                 scrubbing = false;
                 updateSegments();
             }
-           
+
             lastPosition = this.currentFilePosition;
         }
-        
+
         this.renderFuncs.push(beforeRenderFunc);
         this.scene.registerBeforeRender(beforeRenderFunc);
 
