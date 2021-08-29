@@ -162,7 +162,7 @@ export default class {
   }
 
   getMaxHeight() {
-    return this.maxHeight;
+    return this.maxHeight + 1;
   }
 
   getMinHeight() {
