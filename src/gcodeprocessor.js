@@ -12,6 +12,8 @@ import CylinderRenderer from './RenderModes/cylinder';
 import VoxelRenderer from './RenderModes/voxel'
 import LineRenderer from './RenderModes/line'
 
+import SlicerFactory from './SlicerSpecific/slicerfactory'
+
 export const RenderMode = {
   Block: 1,
   Line: 2,
@@ -23,6 +25,7 @@ export const RenderMode = {
 export const ColorMode = {
   Color: 0,
   Feed: 1,
+  Feature: 2
 };
 
 export default class {
@@ -283,10 +286,12 @@ export default class {
     this.maxFeedRate = 0;
     this.hasSpindle = false;
     this.currentColor = new Color4(1, 1, 1, 1);
+    this.slicer = null;
   }
 
   async processGcodeFile(file, renderQuality, clearCache) {
     this.initVariables();
+    this.slicer = SlicerFactory.getSlicer(file);
 
     this.meshIndex = 0;
     this.currentTool = 0;
@@ -334,6 +339,8 @@ export default class {
         this.processLine(line, filePosition);
         // this.processLineV2(line, filePosition);
 
+      } else if(this.colorMode === ColorMode.Feature && this.slicer && this.slicer.isTypeComment(line) ){
+          this.currentColor = this.slicer.getFeatureColor(line);
       }
 
       if (Date.now() - this.timeStamp > 10) {
@@ -368,7 +375,6 @@ export default class {
     let tokens;
 
     tokenString = tokenString.toUpperCase();
-
     let command = tokenString.match(/[GM]+[0-9.]+/); //|S+
 
     if (command != null) {
