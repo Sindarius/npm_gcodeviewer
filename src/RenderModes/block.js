@@ -1,4 +1,4 @@
-import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
+import { Color4 } from '@babylonjs/core/Maths/math.color';
 import { BaseRenderer } from './baserenderer';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
@@ -37,9 +37,9 @@ export default class BlockTIRenderer extends BaseRenderer {
 
         //build the box
         let box = MeshBuilder.CreateBox('box', { width: 1, height: 1, depth: 1, sideOrientation: Mesh.FRONTSIDE }, this.scene);
-        let material = new StandardMaterial("mat", this.scene);
-        material.specularColor = new Color3(0, 0, 0);
-        box.material = material;
+        this.material = new StandardMaterial("mat", this.scene);
+        this.material.specularColor = this.specularColor;
+        box.material = this.material;
         if (this.vertexAlpha) {
             box.hasVertexAlpha = true;
             box.material.forceDepthWrite = true;

@@ -87,7 +87,7 @@ export default class {
     this.engine.enableOfflineSupport = false;
     this.scene = new Scene(this.engine);
     if (this.debug) {
-     // this.scene.debugLayer.show({ embedMode: true });
+      // this.scene.debugLayer.show({ embedMode: true });
     }
     this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor());
 
@@ -110,7 +110,7 @@ export default class {
     var light2 = new PointLight('light2', new Vector3(0, 1, -1), this.scene);
     light2.diffuse = new Color3(1, 1, 1);
     light2.specular = new Color3(1, 1, 1);
-    this.engine.runRenderLoop( () => {
+    this.engine.runRenderLoop(() => {
 
       if (this.pause) {
         return;
@@ -183,11 +183,11 @@ export default class {
     this.clearScene();
     this.refreshUI();
 
-    if(!fileContents){
+    if (!fileContents) {
       this.fileData = 0;
       this.fileSize = 0;
     }
-    else{
+    else {
       this.fileData = fileContents;
       this.fileSize = fileContents.length;
     }
@@ -214,9 +214,9 @@ export default class {
 
   toggleTravels(visible) {
 
-    for(const mesh of this.scene.meshes){
-      if(mesh.name ==="travels"){
-        mesh.isVisible= visible;
+    for (const mesh of this.scene.meshes) {
+      if (mesh.name === "travels") {
+        mesh.isVisible = visible;
       }
     }
 
@@ -290,8 +290,8 @@ export default class {
     this.axes.render();
   }
   async reload() {
-      this.clearScene();
-      await this.processFile(this.fileData);
+    this.clearScene();
+    await this.processFile(this.fileData);
   }
 
   getRenderMode() {

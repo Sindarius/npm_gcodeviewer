@@ -67,12 +67,12 @@ export default class VoxelRenderer extends BaseRenderer {
         box.hasVertexAlpha = true;
         box.updateFacetData = true;
 
-        let material = new StandardMaterial("mat", this.scene);
+        this.material = new StandardMaterial("mat", this.scene);
 
-        material.needDepthPrePass = true;
-        material.forceDepthWrite = true;
-        material.backFaceCulling = false;
-        box.material = material;
+        this.material.needDepthPrePass = true;
+        this.material.forceDepthWrite = true;
+        this.material.backFaceCulling = false;
+        box.material = this.material;
 
         return box;
     }

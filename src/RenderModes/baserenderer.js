@@ -17,6 +17,7 @@ export class BaseRenderer {
         this.isLoading = true;
         this.vertexAlpha = false;
         this.forceRedraw = false;
+        this.material = null;
     }
 
         //Used for rendering visual

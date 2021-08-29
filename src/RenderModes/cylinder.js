@@ -39,17 +39,14 @@ export default class CylinderRenderer extends BaseRenderer {
         }
 
         
-        //build the box
-        //let box = MeshBuilder.CreateBox('box', { width: 1, height: 1, depth: 1, sideOrientation : Mesh.FRONTSIDE }, this.scene);
         let cylinder = MeshBuilder.CreateCylinder('box', {height : 1, diameter: 1});
         cylinder.locallyTranslate(new Vector3(0,0,0));
         cylinder.rotate(new Vector3(0,0,1), Math.PI/2, Space.WORLD);
         cylinder.bakeCurrentTransformIntoVertices();
-        //box.rotate(new Vector3(0,0,1), Math.PI/2, Space.LOCAL);
 
-        let material = new StandardMaterial("mat", this.scene);
-        material.specularColor = new Color3(0,0,0);
-        cylinder.material = material;
+        this.material = new StandardMaterial("mat", this.scene);
+        this.material.specularColor = this.specularColor;
+        cylinder.material = this.material;
         if(this.vertexAlpha){
             cylinder.hasVertexAlpha = true;
             cylinder.material.forceDepthWrite = true;
@@ -60,8 +57,6 @@ export default class CylinderRenderer extends BaseRenderer {
 
 
     render(lines) {
-
-
         let segments = new Array();
         let gcodeLineIndex = new Array(); //file index when segmenet is rendered
         let transparentValue = this.vertexAlpha ? 0.05 : 0;

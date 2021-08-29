@@ -1,7 +1,7 @@
 'use strict';
 
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
-import { Color4 } from '@babylonjs/core/Maths/math.color'
+import { Color4, Color3 } from '@babylonjs/core/Maths/math.color'
 import { PointsCloudSystem } from '@babylonjs/core/Particles/pointsCloudSystem'
 import { pauseProcessing, doArc } from './utils.js'
 import gcodeLine from './gcodeline';
@@ -131,7 +131,7 @@ export default class {
     this.spreadLines = false;
     this.spreadLineAmount = 10;
     this.debug = false;
-    this.specularColor = new Color4(0.1, 0.1, 0.1, 0.1);
+    this.specularColor = new Color3(0, 0, 0);
 
     this.lookAheadLength = 500;
     this.cancelLoad = false;
@@ -169,7 +169,7 @@ export default class {
   setRenderQualitySettings(numberOfLines, renderQuality) {
 
 
-    if(this.forceVoxels){
+    if (this.forceVoxels) {
       this.renderVersion = RenderMode.Voxel;
       this.meshBreakPoint = Number.MAX_VALUE;
       return;
@@ -774,9 +774,13 @@ export default class {
     this.highQualityExtrusion = active;
   }
 
-  setVoxelMode(active){
+  setVoxelMode(active) {
     this.forceVoxels = active;
   }
 
-
+  useSpecularColor(useSpecular) {
+    let color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0);
+    this.specularColor = color;
+    this.renderInstances.forEach(r => r.material.specularColor = color);
+  }
 }
