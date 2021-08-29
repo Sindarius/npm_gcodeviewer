@@ -67,9 +67,10 @@ export default class CylinderRenderer extends BaseRenderer {
         //Process the gcode and extra extrusions
         for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
             let line = lines[lineIdx];
+            let tool = this.tools[line.tool];
             if (!line.extruding) { continue; }
 
-            let segment = line.renderLinev4();
+            let segment = line.renderLinev4(tool.getDiameter(), 0.1);
             let data = {};
             data.matrix = segment.matrix;
             data.color = segment.color;
