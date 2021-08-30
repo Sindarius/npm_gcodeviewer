@@ -18,7 +18,13 @@ export default class PrusaSlicer extends SlicerBase {
             'Supported material': new Color4(0, 1, 0, 1),
             'Supported material interface': new Color4(0, 0.5, 0, 1),
             'Custom': new Color4(0.5, 0.5, 0.5, 1),
-            'Unknown': new Color4(0.5, 0.5, 0.5, 1)
+            'Unknown': new Color4(0.5, 0.5, 0.5, 1),
+
+            //Look up colors
+            'Support material': new Color4(0.5, 0.5, 0.5, 1),
+            'Support material interface': new Color4(0.5, 0.5, 0.5, 1),
+            'Overhang perimeter': new Color4(0.5, 0.5, 0.5, 1),
+
         }
 
     }
@@ -31,7 +37,6 @@ export default class PrusaSlicer extends SlicerBase {
         if (Object.prototype.hasOwnProperty.call(this.colorList, featureColor)) {
             return this.colorList[featureColor];
         }
-        console.log(featureColor);
         return this.colorList['Unknown'];
     }
 

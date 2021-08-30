@@ -26,7 +26,6 @@ export default class Cura extends SlicerBase {
         if (Object.prototype.hasOwnProperty.call(this.colorList, featureColor)) {
             return this.colorList[featureColor];
         }
-        console.log(featureColor);
         return this.colorList['Unknown'];
     }
 
