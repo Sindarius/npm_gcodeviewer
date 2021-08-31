@@ -58,6 +58,9 @@ export default class {
     if (this.renderQuality === undefined || this.renderQuality === null) {
       this.renderQuality = 1;
     }
+
+    this.renderTimeout = 1000;
+
   }
   getMaxHeight() {
     return this.maxHeight;
@@ -82,6 +85,16 @@ export default class {
     this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue);
     this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue);
   }
+
+
+  isArcRotateCameraStopped(camera) {
+    return camera.inertialAlphaOffset === 0
+      && camera.inertialBetaOffset === 0
+      && camera.inertialRadiusOffset === 0
+      && camera.inertialPanningX === 0
+      && camera.inertialPanningY === 0;
+  }
+
   init() {
     this.engine = new Engine(this.canvas, true, { doNotHandleContextLost: true });
     this.engine.enableOfflineSupport = false;
@@ -99,6 +112,8 @@ export default class {
 
     // Add a camera to the scene and attach it to the canvas
     this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
+    this.orbitCamera.attachControl(false);
+
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
     this.orbitCamera.maxZ = 100000;
@@ -111,11 +126,11 @@ export default class {
     light2.diffuse = new Color3(1, 1, 1);
     light2.specular = new Color3(1, 1, 1);
     this.engine.runRenderLoop(() => {
-
-      if (this.pause) {
+      if (this.pause || (Date.now() - this.gcodeProcessor.lastUpdate > this.renderTimeout && this.isArcRotateCameraStopped(this.orbitCamera))) {
         return;
       }
-      this.scene.render();
+
+      this.scene.render(true, true);
       //Update light 2 position
       light2.position = this.scene.cameras[0].position;
 
@@ -141,6 +156,7 @@ export default class {
 
   resize() {
     this.engine.resize();
+    this.scene.render(true, true);
   }
 
   refreshUI() {
@@ -204,7 +220,7 @@ export default class {
     await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality);
     this.clearLoadFlag();
 
-    await this.gcodeProcessor.createScene(this.scene);
+    await this.gcodeProcessor.createMesh(this.scene);
     this.gcodeProcessor.loadingComplete();
     this.maxHeight = this.gcodeProcessor.getMaxHeight();
     this.minHeight = this.gcodeProcessor.getMinHeight();
@@ -330,6 +346,9 @@ export default class {
       }
 
       this.toolCursor.setAbsolutePosition(new Vector3(x, z, y));
+      if (this.toolCursorMesh.isVisible) {
+        this.scene.render();
+      }
     }
   }
   buildtoolCursor() {

@@ -151,10 +151,16 @@ export default class {
     this.meshIndex = 0;
 
     this.highQualityExtrusion = false;
+    this.perimeterOnly = false;
 
-
+    this.lastUpdate = Date.now();
 
   }
+
+  doUpdate(){
+    this.lastUpdate = Date.now();
+  }
+
 
   setProgressColor(color) {
     this.progressColor = Color4.FromHexString(color.padEnd(9, 'F'));
@@ -287,6 +293,7 @@ export default class {
     this.hasSpindle = false;
     this.currentColor = new Color4(1, 1, 1, 1);
     this.slicer = null;
+    this.skip = false;
   }
 
   async processGcodeFile(file, renderQuality, clearCache) {
@@ -321,11 +328,12 @@ export default class {
       this.tools.push(new Tool())
     }
     //set initial color to extruder 0
-    this.currentColor = this.tools[0].color ?? new Tool();
+    this.currentColor = this.tools[0].color ?? (new Tool()).color;
 
     lines.reverse();
     let filePosition = 0; //going to make this file position
     this.timeStamp = Date.now();
+    
     while (lines.length) {
       if (this.cancelLoad) {
         this.cancelLoad = false;
@@ -334,6 +342,13 @@ export default class {
       var line = lines.pop();
       filePosition += line.length + 1;
       line.trim();
+
+      //If perimter only check feature to see if it can be removed.
+      if(this.perimeterOnly && this.slicer && this.slicer.isTypeComment(line)){
+        this.slicer.getFeatureColor(line)
+        this.skip = !this.slicer.isPerimeter();
+      }
+
       if (!line.startsWith(';')) {
 
         this.processLine(line, filePosition);
@@ -341,7 +356,9 @@ export default class {
 
       } else if(this.colorMode === ColorMode.Feature && this.slicer && this.slicer.isTypeComment(line) ){
           this.currentColor = this.slicer.getFeatureColor(line);
-      }
+      } 
+
+
 
       if (Date.now() - this.timeStamp > 10) {
         if (this.loadingProgressCallback) {
@@ -349,6 +366,9 @@ export default class {
         }
         this.timeStamp = await pauseProcessing();
       }
+
+      this.doUpdate();
+
     }
 
     //build the travel mesh
@@ -444,7 +464,12 @@ export default class {
               }
             }
 
+            if(line.extruding && this.skip){
+              return;
+            }
+            
             line.end = this.currentPosition.clone();
+
             if (this.debug) {
               console.log(`${tokenString}   absolute:${this.absolute}`);
               console.log(lineNumber, line);
@@ -603,8 +628,9 @@ export default class {
     //break lines into manageable meshes at cost of extra draw calls
     if (this.lines.length >= this.meshBreakPoint) {
       //lets build the mesh
-      await this.createScene(this.scene);
+      await this.createMesh(this.scene);
       await pauseProcessing();
+      this.doUpdate();
       this.meshIndex++;
     }
   }
@@ -628,7 +654,7 @@ export default class {
     });
   }
 
-  async createScene(scene) {
+  async createMesh(scene) {
     let renderer;
     if (this.renderVersion === RenderMode.Line || this.renderVersion === RenderMode.Point) {
       renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
@@ -673,6 +699,8 @@ export default class {
   updateFilePosition(filePosition) {
     //Some renderers will ahve multiple instances like block and line
     this.renderInstances.forEach(r => r.updateFilePosition(filePosition));
+    this.doUpdate();
+
   }
 
   doFinalPass() {
@@ -774,6 +802,7 @@ export default class {
     for (let idx = 0; idx < this.renderInstances.length; idx++) {
       this.renderInstances[idx].forceRedraw = true;
     }
+    this.doUpdate();
   }
 
   useHighQualityExtrusion(active) {
@@ -788,5 +817,6 @@ export default class {
     let color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0);
     this.specularColor = color;
     this.renderInstances.forEach(r => r.material.specularColor = color);
+    this.scene.render();
   }
 }
