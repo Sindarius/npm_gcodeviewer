@@ -358,8 +358,6 @@ export default class {
           this.currentColor = this.slicer.getFeatureColor(line);
       } 
 
-
-
       if (Date.now() - this.timeStamp > 10) {
         if (this.loadingProgressCallback) {
           this.loadingProgressCallback(filePosition / file.length, "Loading File...");
@@ -817,6 +815,8 @@ export default class {
     let color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0);
     this.specularColor = color;
     this.renderInstances.forEach(r => r.material.specularColor = color);
-    this.scene.render();
+    if(this.scene){
+      this.scene.render(true, true);
+    }
   }
 }
