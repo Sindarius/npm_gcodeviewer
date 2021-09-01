@@ -148,6 +148,8 @@ export default class BlockTIRenderer extends BaseRenderer {
 
         }
 
+        if(lines.length == 0) return;
+        
         let minFilePosition = lines[0].gcodeLineNumber
         let maxFilePosition = lines.slice(-1)[0].gcodeLineNumber;
 
