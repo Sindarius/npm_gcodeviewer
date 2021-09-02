@@ -294,6 +294,7 @@ export default class {
     this.currentColor = new Color4(1, 1, 1, 1);
     this.slicer = null;
     this.skip = false;
+    this.isSupport = false;
   }
 
   async processGcodeFile(file, renderQuality, clearCache) {
@@ -346,7 +347,6 @@ export default class {
       //If perimter only check feature to see if it can be removed.
       if(this.perimeterOnly && this.slicer && this.slicer.isTypeComment(line)){
         this.slicer.getFeatureColor(line)
-        this.skip = !this.slicer.isPerimeter();
       }
 
       if (!line.startsWith(';')) {
@@ -354,8 +354,11 @@ export default class {
         this.processLine(line, filePosition);
         // this.processLineV2(line, filePosition);
 
-      } else if(this.colorMode === ColorMode.Feature && this.slicer && this.slicer.isTypeComment(line) ){
-          this.currentColor = this.slicer.getFeatureColor(line);
+      } else if(this.slicer && this.slicer.isTypeComment(line) ){
+        this.isSupport = this.slicer.isSupport();
+        if(this.colorMode === ColorMode.Feature){
+          this.currentColor = this.slicer.getFeatureColor();
+        }
       } 
 
       if (Date.now() - this.timeStamp > 10) {
@@ -500,7 +503,7 @@ export default class {
               line.color = this.currentColor.clone();
               this.lines.push(line);
 
-              if (this.currentPosition.y > this.currentLayerHeight && this.currentPosition.y < 20) {
+              if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport) {
                 this.previousLayerHeight = this.currentLayerHeight;
                 this.currentLayerHeight = this.currentPosition.y;
               }

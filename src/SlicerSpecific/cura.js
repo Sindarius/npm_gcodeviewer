@@ -5,31 +5,56 @@ export default class Cura extends SlicerBase {
 
     constructor() {
         super();
-        this.colorList = {
-            'SKIN': { color :new Color4(1, 0.9, .3, 1), perimeter : true },
-            'WALL-OUTER': { color : new Color4(1, 0.5, .2, 1), perimeter : true } ,
-            'WALL-INNER': { color : new Color4(.59, .19, .16, 1), perimeter : false } ,
-            'FILL': { color : new Color4(0.95, .25, .25, 1), perimeter : false},
-            'SKIRT': {color :  new Color4(0, .53, .43, 1), perimeter : false} ,
-            'CUSTOM': {color : new Color4(0.5, 0.5, 0.5, 1), perimeter : false},
-            'UNKNOWN':{color : new Color4(0.5, 0.5, 0.5, 1), perimeter : false}
+        this.featureList = {
+            'SKIN': { color :new Color4(1, 0.9, .3, 1), perimeter : true, support : false},
+            'WALL-OUTER': { color : new Color4(1, 0.5, .2, 1), perimeter : true,  support : false},
+            'WALL-INNER': { color : new Color4(.59, .19, .16, 1), perimeter : false,  support : false},
+            'FILL': { color : new Color4(0.95, .25, .25, 1), perimeter : false ,  support : false},
+            'SKIRT': {color :  new Color4(0, .53, .43, 1), perimeter : false ,  support : false},
+            'SUPPORT': {color :  new Color4(0, .53, .43, 1), perimeter : false ,  support : true},
+            'CUSTOM': {color : new Color4(0.5, 0.5, 0.5, 1), perimeter : false,  support : false},
+            'UNKNOWN':{color : new Color4(0.5, 0.5, 0.5, 1), perimeter : false,  support : false}
         }
     }
 
     isTypeComment(comment) {
-        return comment.trim().startsWith(';TYPE:');
-    }
-    getFeatureColor(comment) {
-        var featureColor = comment.substring(6).trim();
-        if (Object.prototype.hasOwnProperty.call(this.colorList, featureColor)) {
-            this.perimeter = this.colorList[featureColor].perimeter
-            return this.colorList[featureColor].color;
+        if (comment.trim().startsWith(';TYPE:')){
+            this.feature = comment.substring(6).trim();
+            return true;
         }
-        return this.colorList['UNKNOWN'];
+        return false;
+    }
+    getFeatureColor() {
+        if (Object.prototype.hasOwnProperty.call(this.featureList, this.feature)) {
+            try{
+                return this.featureList[this.feature].color;
+            }
+            catch{
+                console.error(`Missing ${this.feature}`);
+                return new Color4(0.5, 0.5, 0.5, 1);
+            }
+        }
+        return this.featureList['UNKNOWN'];
     }
 
     isPerimeter(){
-        return this.perimeter;
+        try{
+            return this.featureList[this.feature].perimeter;
+        }
+        catch{
+            console.error(`Missing ${this.feature}`);
+            return true;
+        }
+    }
+
+    isSupport(){
+        try{
+            return this.featureList[this.feature].support;
+        }
+        catch{
+            console.error(`Missing ${this.feature}`);
+            return false;
+        }
     }
 
 }

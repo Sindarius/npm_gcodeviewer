@@ -11,7 +11,6 @@ export default class SlicerFacotry {
         if (header.includes(';Generated with Cura_SteamEngine')) {
             return new Cura();
         }
-
         return null;
     }
 }
