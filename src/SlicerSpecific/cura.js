@@ -30,7 +30,7 @@ export default class Cura extends SlicerBase {
                 return this.featureList[this.feature].color;
             }
             catch{
-                console.error(`Missing ${this.feature}`);
+                this.reportMissingFeature(this.feature);
                 return new Color4(0.5, 0.5, 0.5, 1);
             }
         }
@@ -42,7 +42,7 @@ export default class Cura extends SlicerBase {
             return this.featureList[this.feature].perimeter;
         }
         catch{
-            console.error(`Missing ${this.feature}`);
+            this.reportMissingFeature(this.feature);
             return true;
         }
     }
@@ -52,7 +52,7 @@ export default class Cura extends SlicerBase {
             return this.featureList[this.feature].support;
         }
         catch{
-            console.error(`Missing ${this.feature}`);
+            this.reportMissingFeature(this.feature);
             return false;
         }
     }

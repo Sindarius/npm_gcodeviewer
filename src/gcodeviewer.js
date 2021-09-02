@@ -176,6 +176,7 @@ export default class {
       this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
       this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2);
     }
+    this.scene.render(true,true);
   }
 
   lastLoadFailed() {
@@ -237,7 +238,7 @@ export default class {
     }
 
     this.travelVisible = visible;
-
+    this.scene.render(true, true);
   }
   getProgressColor() {
     let progressColor = localStorage.getItem('progressColor');

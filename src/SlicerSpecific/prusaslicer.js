@@ -25,6 +25,7 @@ export default class PrusaSlicer extends SlicerBase {
             'Support material': { color: new Color4(0.5, 0.5, 0.5, 1), perimeter: false , support : true},
             'Support material interface': { color: new Color4(0.5, 0.5, 0.5, 1), perimeter: false , support : true},
             'Overhang perimeter': { color: new Color4(0.5, 0.5, 0.5, 1), perimeter: true , support : false},
+            'Wipe tower': { color: new Color4(0.5, 0.5, 0.5, 1), perimeter: true , support : false},
         }
 
     }
@@ -44,7 +45,7 @@ export default class PrusaSlicer extends SlicerBase {
                 return this.featureList[this.feature].color;
             }
             catch{
-                console.error(`Missing ${this.feature}`);
+                this.reportMissingFeature(this.feature);
                 return new Color4(0.5, 0.5, 0.5, 1);
             }
         }
@@ -56,7 +57,7 @@ export default class PrusaSlicer extends SlicerBase {
             return this.featureList[this.feature].perimeter;
         }
         catch{
-            console.error(`Missing ${this.feature}`);
+            this.reportMissingFeature(this.feature);
             return true;
         }
     }
@@ -65,7 +66,7 @@ export default class PrusaSlicer extends SlicerBase {
         try{   
             return this.featureList[this.feature].support;}
         catch{
-            console.error(`Missing ${this.feature}`);
+            this.reportMissingFeature(this.feature);
             return false;
         }
     } 
