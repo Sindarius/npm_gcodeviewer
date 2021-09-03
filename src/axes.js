@@ -29,6 +29,7 @@ export default class {
     if (this.axesMesh) {
       this.axesMesh.setEnabled(visible);
     }
+    this.scene.render();
   }
 
   makeTextPlane(text, color, size) {

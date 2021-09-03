@@ -64,6 +64,7 @@ export default class {
       this.bedMesh.dispose(false, true);
     }
     this.buildBed();
+    this.scene.render();
   }
   buildBed() {
     if (this.debug) return;
@@ -207,6 +208,7 @@ export default class {
       this.planeMaterial = this.buildGridMaterial();
       this.dispose();
       this.buildBed();
+      this.scene.render();
     }
   }
   getBedColor4() {

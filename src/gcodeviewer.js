@@ -265,6 +265,7 @@ export default class {
         color = color.substring(0, 7);
       }
       this.scene.clearColor = Color3.FromHexString(color);
+      this.scene.render();
     }
     localStorage.setItem('sceneBackgroundColor', color);
   }
@@ -321,6 +322,7 @@ export default class {
     }
     this.toolCursorMesh.isVisible = visible;
     this.toolCursorVisible = visible;
+    this.scene.render();
   }
   updateToolPosition(position) {
     let x = 0;
@@ -414,5 +416,11 @@ export default class {
     this.cameraInertia = enabled;
     localStorage.setItem('cameraInertia', enabled);
     this.updateCameraInertiaProperties()
+  }
+
+  forceRender(){
+    if(this.scene){
+      this.scene.render(true,true);
+    }
   }
 }
