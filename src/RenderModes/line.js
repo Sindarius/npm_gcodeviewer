@@ -91,8 +91,8 @@ export default class LineRenderer extends BaseRenderer {
             if (gcodeLineIndex[idx] < this.currentFilePosition) {
               colorArray[idx][0].toArray(colorData, colorIdx);
               colorArray[idx][1].toArray(colorData, colorIdx + 4);
-              colorData[colorIdx + 3] = 1;
-              colorData[colorIdx + 7] = 1;
+              colorData[colorIdx + 3] = additive[idx] ? 1 : 0;
+              colorData[colorIdx + 7] = additive[idx] ? 1 : 0;
               completed[idx] = true;
             } else {
               colorData[colorIdx + 3] = additive[idx] ? transparentValue : 0;
@@ -191,6 +191,12 @@ export default class LineRenderer extends BaseRenderer {
       if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || this.forceRedraw) {
         this.forceRedraw = false;
         scrubbing = true;
+
+        for(let idx = 0; idx < completed.length; idx++){
+          completed[idx] = false
+        }
+
+        lastRendered = 0
         lastPosition = 0
         updateLines();
 

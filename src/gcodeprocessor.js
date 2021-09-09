@@ -787,7 +787,7 @@ export default class {
     let tool = new Tool();
     tool.color = Color4.FromHexString(color.padEnd(9, 'F'));
     tool.diameter = diameter;
-    tool.additive = toolType;
+    tool.toolType = toolType;
     this.tools.push(tool);
   }
 
@@ -821,5 +821,10 @@ export default class {
     if(this.scene){
       this.scene.render(true, true);
     }
+  }
+
+  async cancel(){
+    this.cancelLoad = true
+    await this.pauseProcessing();
   }
 }
