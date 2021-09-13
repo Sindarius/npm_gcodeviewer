@@ -606,12 +606,26 @@ export default class {
           this.currentColor = new Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
           break;
         }
+        case 'M600': {
+          try{
+          this.currentTool++
+          if(this.currentTool >= this.tools.length) {
+            this.currentTool = 0;
+          }
+          if (this.colorMode !== ColorMode.Feed) {
+            this.currentColor = this.tools[this.currentTool].color.clone();
+            console.log(this.currentColor)
+          }
+        }
+        catch(ex){
+          console.log(ex)
+        }
+        }break;
       }
     }
     else {
       //command is null so we need to check a couple other items.
       if (tokenString.startsWith('T')) {
-
         this.currentPosition.z += 10; //For ASMBL we are going to assume that there is bed movement in a macro for toolchange.
 
         this.currentTool = Number.parseInt(tokenString.substring(1)); //Track the current selected tool (Currently used for Voxel Mode)
