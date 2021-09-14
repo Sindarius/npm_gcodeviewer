@@ -413,7 +413,7 @@ export default class {
             //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code
             if (command[0] == 'G1' && (!this.tools[this.currentTool]?.isAdditive() ?? true)) {
               line.extruding = true;
-              line.color = this.tools[this.currentTool].color.clone();
+              line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone();
             }
 
             for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
@@ -614,7 +614,6 @@ export default class {
           }
           if (this.colorMode !== ColorMode.Feed) {
             this.currentColor = this.tools[this.currentTool].color.clone();
-            console.log(this.currentColor)
           }
         }
         catch(ex){
@@ -626,15 +625,25 @@ export default class {
     else {
       //command is null so we need to check a couple other items.
       if (tokenString.startsWith('T')) {
-        this.currentPosition.z += 10; //For ASMBL we are going to assume that there is bed movement in a macro for toolchange.
-
+        this.currentPosition.z += 10; //For ASMBL we are going to assume that there is bed movement in a macro for toolchange. (Look into this for other possible sideeffects)
         this.currentTool = Number.parseInt(tokenString.substring(1)); //Track the current selected tool (Currently used for Voxel Mode)
+
+        if(this.currentTool >= this.tools.length){
+          this.currentTool = this.currentTool % this.tools.length; //Deal with a lot of manual tool changes
+        }
+        else if (extruder < 0){ 
+          this.currentTool = 0
+          extruder = 0; // Cover the case where someone sets a tool to a -1 value (I believe Prusa use this for MMU pre-print selection)
+        }
+
         if (this.colorMode !== ColorMode.Feed) {
-          var extruder = Number(tokenString.substring(1)) % this.extruderCount; //For now map to extruders 0 - 4
-          if (extruder < 0) extruder = 0; // Cover the case where someone sets a tool to a -1 value
-          this.currentColor = this.tools[extruder].color.clone();
+          var extruder = Number(tokenString.substring(1)) % this.extruderCount;
+          this.currentColor = this.tools[extruder]?.color?.clone() ?? new Color3(1,0,0);
         }
       }
+
+
+
       if (this.debug) {
         console.log(tokenString);
       }
