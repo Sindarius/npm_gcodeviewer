@@ -153,6 +153,7 @@ export default class {
     this.perimeterOnly = false
 
     this.lastUpdate = Date.now()
+    this.treatG1Extrusion = false;
   }
 
   doUpdate() {
@@ -404,9 +405,10 @@ export default class {
             line.start = this.currentPosition.clone()
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight
             //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code
-            if (command[0] == 'G1' && (!this.tools[this.currentTool]?.isAdditive() ?? true)) {
+            if (command[0].toUpperCase() == 'G1' && ((!this.tools[this.currentTool]?.isAdditive() ?? true) || this.treatG1Extrusion)) {
               line.extruding = true
               line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone()
+              this.maxHeight = this.currentPosition.y //trying to get the max height of the model.
             }
 
             for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
@@ -465,8 +467,8 @@ export default class {
             line.end = this.currentPosition.clone()
 
             if (this.debug) {
-              console.log(`${tokenString}   absolute:${this.absolute}`)
-              console.log(lineNumber, line)
+             // console.log(`${tokenString}   absolute:${this.absolute}`)
+            //  console.log(lineNumber, line)
             }
 
             if (this.feedRateTrimming) {
@@ -517,7 +519,8 @@ export default class {
             arcResult.points.forEach((point, idx) => {
               let line = new gcodeLine()
               line.tool = this.currentTool
-              line.gcodeLineNumber = this.gcodeLineNumber
+              line.gcodeLineNumber = lineNumber
+              line.layerHeight = this.currentLayerHeight - this.previousLayerHeight
               line.start = curPt.clone()
               line.end = new Vector3(point.x, point.y, point.z)
               line.color = this.currentColor.clone()
@@ -529,11 +532,21 @@ export default class {
                 }
               }
               curPt = line.end.clone()
+              if(this.debug)
+              {
+                console.log(line)
+              }
               this.lines.push(line)
             })
-            //Last point to currentposition
 
-            this.currentPosition = new Vector3(arcResult.position.x, arcResult.position.y, arcResult.position.z)
+            //Last point to currentposition
+            this.currentPosition = new Vector3(curPt.x, curPt.y, curPt.z)
+
+            if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport) {
+              this.previousLayerHeight = this.currentLayerHeight
+              this.currentLayerHeight = this.currentPosition.y
+            }
+
           }
           break
         case 'G28':
