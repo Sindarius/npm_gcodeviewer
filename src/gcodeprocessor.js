@@ -481,10 +481,15 @@ export default class {
             if (this.everyNthRow > 1 && line.extruding) {
               if (this.currentPosition.y > this.currentZ) {
                 this.currentRowIdx++
+
+                if(this.currentRowIdx % 3 == 0){
+                  this.currentRowIdx++;
+                }
+
                 this.currentZ = this.currentPosition.y
               }
 
-              if ((this.currentRowIdx % this.everyNthRow !== 0) ^ (this.currentRowIdx < 2)) {
+              if ((this.currentRowIdx % this.everyNthRow == 0) && (this.currentRowIdx > 2))  {
                 return
               }
             }

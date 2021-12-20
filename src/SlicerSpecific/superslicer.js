@@ -63,7 +63,8 @@ export default class SuperSlicer extends SlicerBase {
 
     isSupport() { 
         try{   
-            return this.featureList[this.feature].support;}
+            return this.featureList[this.feature].support;
+        }
         catch{
             this.reportMissingFeature(this.feature);
             return false;
