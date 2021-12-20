@@ -46,7 +46,6 @@ export default class PrusaSlicer extends SlicerBase {
             }
             catch{
                 this.reportMissingFeature(this.feature);
-                return new Color4(0.5, 0.5, 0.5, 1);
             }
         }
         return this.featureList['Unknown'].color;

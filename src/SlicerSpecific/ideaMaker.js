@@ -1,17 +1,20 @@
 import SlicerBase from './slicerbase'
 import { Color4 } from '@babylonjs/core/Maths/math.color'
 
-export default class Cura extends SlicerBase {
+export default class ideaMaker extends SlicerBase {
 
     constructor() {
         super();
         this.featureList = {
-            'SKIN': { color :new Color4(1, 0.9, .3, 1), perimeter : true, support : false},
-            'WALL-OUTER': { color : new Color4(1, 0.5, .2, 1), perimeter : true,  support : false},
-            'WALL-INNER': { color : new Color4(.59, .19, .16, 1), perimeter : false,  support : false},
-            'FILL': { color : new Color4(0.95, .25, .25, 1), perimeter : false ,  support : false},
-            'SKIRT': {color :  new Color4(0, .53, .43, 1), perimeter : false ,  support : false},
+            'WALL-OUTER': { color : new Color4(0.47, 0.18, 0.18, 1 ), perimeter : true,  support : false},
+            'WALL-INNER': { color : new Color4(0, 0.55 , 0, 1), perimeter : false,  support : false},
+            'FILL': { color : new Color4(0.90, .20, .20, 1), perimeter : false ,  support : false},
+            'SOLID-FILL': { color : new Color4(0.95, .25, .25, 1), perimeter : false ,  support : false},
+            'BRIDGE': { color : new Color4(0.9, 0.15, 0.195, 1), perimeter : false ,  support : false},
+            'SKIRT': {color :  new Color4(0.31, 0.12, 0.33, 1), perimeter : false ,  support : false},
             'SUPPORT': {color :  new Color4(0, .53, .43, 1), perimeter : false ,  support : true},
+            'DENSE-SUPPORT': {color :  new Color4(0, 0.28 , 0.55, 1), perimeter : false ,  support : true},
+            'RAFT': {color :  new Color4(0.59, 0.49, 0.2, 1), perimeter : false ,  support : false},
             'CUSTOM': {color : new Color4(0.5, 0.5, 0.5, 1), perimeter : false,  support : false},
             'UNKNOWN':{color : new Color4(0.5, 0.5, 0.5, 1), perimeter : false,  support : false}
         }
@@ -33,7 +36,7 @@ export default class Cura extends SlicerBase {
                 this.reportMissingFeature(this.feature);
             }
         }
-        return this.featureList['UNKNOWN'];
+        return this.featureList['UNKNOWN'].color;
     }
 
     isPerimeter(){

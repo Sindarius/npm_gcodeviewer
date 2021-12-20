@@ -342,9 +342,9 @@ export default class {
       line.trim()
 
       //If perimter only check feature to see if it can be removed.
-      if (this.perimeterOnly && this.slicer && this.slicer.isTypeComment(line)) {
-        this.slicer.getFeatureColor(line)
-      }
+      if (this.perimeterOnly && this.slicer && this.slicer.isTypeComment(line) && this.slicer.isPerimeter()) {
+        this.currentColor = this.slicer.getFeatureColor()
+      }    
 
       if (!line.startsWith(';')) {
         this.processLine(line, filePosition)
@@ -500,6 +500,9 @@ export default class {
             // let feedRateTrimming=  this.feedRateTrimming && this.currentFeedRate < this.avgFeed;
 
             if (spindleCutting || (lineTolerance && line.extruding)) {
+              if(this.currentColor == null){
+                this.currentColor = new Color4(1,1,1,1);
+              }
               line.color = this.currentColor.clone()
               this.lines.push(line)
 
