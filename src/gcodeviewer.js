@@ -88,7 +88,7 @@ export default class {
   }
 
   init() {
-    console.info("GCode Viewer - Sindarius - v2.1.15 ")
+    console.info("GCode Viewer - Sindarius - v2.1.17 ")
     this.engine = new Engine(this.canvas, true, {
       doNotHandleContextLost: true
     })
