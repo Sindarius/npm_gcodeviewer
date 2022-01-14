@@ -856,6 +856,10 @@ export default class {
     }
   }
 
+  g1AsExtrusion(active){
+    this.treatG1Extrusion = active
+  }
+
   async cancel() {
     this.cancelLoad = true
     await this.pauseProcessing()
