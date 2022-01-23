@@ -12,6 +12,7 @@ import '@babylonjs/core/Rendering/edgesRenderer'
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera'
 import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
+import { version } from '../package.json' 
 
 //import '@babylonjs/core/Debug/debugLayer'
 //import '@babylonjs/inspector'
@@ -88,7 +89,7 @@ export default class {
   }
 
   init() {
-    console.info("GCode Viewer - Sindarius - v2.1.17 ")
+    console.info(`GCode Viewer - Sindarius - ${version} `)
     this.engine = new Engine(this.canvas, true, {
       doNotHandleContextLost: true
     })

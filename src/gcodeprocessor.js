@@ -153,7 +153,7 @@ export default class {
     this.perimeterOnly = false
 
     this.lastUpdate = Date.now()
-    this.treatG1Extrusion = false;
+    this.g1AsExtrusion = false;
   }
 
   doUpdate() {
@@ -405,7 +405,7 @@ export default class {
             line.start = this.currentPosition.clone()
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight
             //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code
-            if (command[0].toUpperCase() == 'G1' && ((!this.tools[this.currentTool]?.isAdditive() ?? true) || this.treatG1Extrusion)) {
+            if (command[0].toUpperCase() == 'G1' && ((!this.tools[this.currentTool]?.isAdditive() ?? true) || this.g1AsExtrusion)) {
               line.extruding = true
               line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone()
               this.maxHeight = this.currentPosition.y //trying to get the max height of the model.
@@ -857,7 +857,7 @@ export default class {
   }
 
   g1AsExtrusion(active){
-    this.treatG1Extrusion = active
+    this.g1AsExtrusion = active
   }
 
   async cancel() {

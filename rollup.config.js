@@ -1,6 +1,7 @@
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
+import rollupjson from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
 
 
@@ -25,7 +26,8 @@ export default [
                   unsafe_arrows: true,
                 },
                 output: { quote_style: 1 }
-              })
+              }),
+              rollupjson()
         ]
     }
 ];
