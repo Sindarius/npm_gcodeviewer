@@ -27,6 +27,11 @@
 	},
 	"author": "Sindarius",
 	"license": "LGPL-3.0-or-later",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Sindarius/npm_gcodeviewer"
+	},
+	"homepage": "http://www.sindarius.com",
 	"dependencies": {
 		"@babylonjs/core": "^4.2.0",
 		"@babylonjs/inspector": "^4.2.0",
