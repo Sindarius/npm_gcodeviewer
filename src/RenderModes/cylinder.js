@@ -39,7 +39,7 @@ export default class CylinderRenderer extends BaseRenderer {
         }
 
         
-        let cylinder = MeshBuilder.CreateCylinder('box', {height : 1, diameter: 1});
+        let cylinder = MeshBuilder.CreateCylinder('box', {height : 1, diameter: 1}, this.scene);
         cylinder.locallyTranslate(new Vector3(0,0,0));
         cylinder.rotate(new Vector3(0,0,1), Math.PI/2, Space.WORLD);
         cylinder.bakeCurrentTransformIntoVertices();
@@ -135,6 +135,11 @@ export default class CylinderRenderer extends BaseRenderer {
 
                 if (colorData[colorIdx + 3] > 0.5 && colorData[colorIdx + 3] < 1) {
                     colorData[colorIdx + 3] += 0.02;
+                    let percent = (colorData[colorIdx + 3] - 0.9) * 10;
+                    colorData[colorIdx] = this.lerp(this.progressColor.r, segments[idx].color.r, percent )
+                    colorData[colorIdx + 1] = this.lerp(this.progressColor.g, segments[idx].color.g, percent )
+                    colorData[colorIdx + 2] = this.lerp(this.progressColor.b, segments[idx].color.b, percent )
+
                 }
 
                 if (colorData[colorIdx + 3] >= 1 && !completed[idx]) {

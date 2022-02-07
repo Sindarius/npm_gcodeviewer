@@ -21,6 +21,7 @@ import gcodeProcessor from './gcodeprocessor.js'
 import Bed from './bed.js'
 import BuildObjects from './buildobjects.js'
 import Axes from './axes.js'
+import { createViewBox, registerViewBoxCallback } from './viewbox'
 
 export default class {
   constructor(canvas) {
@@ -113,7 +114,7 @@ export default class {
     this.orbitCamera.invertRotation = false
     this.orbitCamera.attachControl(this.canvas, false)
     this.orbitCamera.maxZ = 100000
-    this.orbitCamera.lowerRadiusLimit = 10
+    this.orbitCamera.lowerRadiusLimit = 5
     this.updateCameraInertiaProperties()
 
     // Add lights to the scene
@@ -147,6 +148,41 @@ export default class {
     this.axes.render()
 
     this.resetCamera()
+
+    createViewBox(this.engine, this.scene, this.orbitCamera)
+
+    registerViewBoxCallback((scene, name) => { 
+      var bedCenter = this.bed.getCenter()
+      var bedSize = this.bed.getSize()
+      this.scene.activeCamera.radius = bedCenter.x * 3;
+      this.scene.activeCamera.target = new Vector3(bedCenter.x, bedCenter.z, bedCenter.y)
+
+      switch(name){
+        case 'Front':
+          this.scene.activeCamera.position = new Vector3(bedCenter.x, bedCenter.z, -bedSize.y * 1.25)
+            break;
+        case 'Back': {
+          this.scene.activeCamera.position = new Vector3(bedCenter.x, bedCenter.z, bedSize.y * 2.25)
+        } break;
+        case 'Right':
+          this.scene.activeCamera.position = new Vector3(bedSize.x * 2.25 , bedCenter.z, bedCenter.y)
+            break;
+        case 'Left':
+          this.scene.activeCamera.position = new Vector3(-bedSize.x * 1.25 , bedCenter.z, bedCenter.y)
+            break;
+        case 'Top':
+          this.scene.activeCamera.target = new Vector3(bedCenter.x, 0, bedCenter.y)
+          this.scene.activeCamera.position = new Vector3(bedCenter.x, bedSize.z * 1.25, bedCenter.y)
+          this.scene.activeCamera.alpha = 3*  Math.PI / 2;
+            break;
+        case 'Bottom':
+          this.scene.activeCamera.target = new Vector3(bedCenter.x, 0, bedCenter.y)
+          this.scene.activeCamera.position = new Vector3(bedCenter.x, -bedSize.z * 2.25, bedCenter.y)
+          this.scene.activeCamera.alpha = 3 * Math.PI / 2;
+            break;
+        }
+      this.scene.render(true, true)
+    })
   }
 
   resize() {
@@ -161,13 +197,12 @@ export default class {
   resetCamera() {
     var bedCenter = this.bed.getCenter()
     var bedSize = this.bed.getSize()
-    ;(this.scene.activeCamera.alpha = Math.PI / 2), (this.scene.activeCamera.beta = 2.356194)
     if (this.bed.isDelta) {
       this.scene.activeCamera.radius = bedCenter.x
       this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y)
       this.scene.activeCamera.position = new Vector3(-bedSize.x, bedSize.z, -bedSize.x)
     } else {
-      this.scene.activeCamera.radius = 250
+      this.scene.activeCamera.radius = bedCenter.x * 3;
       this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y)
       this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2)
     }

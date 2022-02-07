@@ -1,6 +1,12 @@
 /*eslint-disable*/
 'use strict';
 
+import * as d3 from 'd3';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Texture } from '@babylonjs/core/Materials/Textures/texture'
+
 function getNumber(tokenNumber, value, relativeMove) {
     let number = Number(tokenNumber.substring(1));
     let newNum = !number ? 0 : number;
@@ -130,4 +136,54 @@ export function pauseProcessing() {
     return new Promise((resolve) => setTimeout(resolve)).then(() => {
       return Date.now();
     });
+  }
+
+
+export function makeTextPlane(scene, text, color, bgColor, width, height) {
+    var svg = d3
+      .create('svg')
+      .attr('width', 400)
+      .attr('height', 200)
+
+    svg.append('rect')
+    .attr('x',0)
+    .attr('y',0)
+    .attr('width', 400 )
+    .attr('height', 200)
+    .attr('fill', '#333333')
+
+    svg
+      .append('text')
+      .attr('x', 200)
+      .attr('y', 100)
+      .attr('font-family', 'Roboto')
+      .attr('font-size', '75px')
+      .attr('text-anchor', 'middle')
+      .attr('alignment-baseline', 'middle')
+      .attr('fill', bgColor)
+      .attr('stroke', color)
+      .attr('stroke-width', 2)
+      .attr('text-rendering', 'optimizeLegibility')
+      .text(text);
+
+    var html = svg
+      .attr('title', 'test2')
+      .attr('version', 1.1)
+      .attr('xmlns', 'http://www.w3.org/2000/svg')
+      .node(); //.parentNode.innerHTML;
+
+    var doctype = '<?xml version="1.0" standalone="no"?>' + '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">';
+
+    var source = new XMLSerializer().serializeToString(html);
+    var blob = new Blob([doctype + source], { type: 'image/svg+xml' });
+    var url = window.URL.createObjectURL(blob);
+    console.log(url)
+
+    let plane = MeshBuilder.CreatePlane('TextPlane', { width: width, height: height}, scene);
+    plane.material = new StandardMaterial('TextPlaneMaterial', scene);
+    plane.material.backFaceCulling = false;
+    plane.material.specularColor = new Color3(0,0,0);
+    plane.material.diffuseTexture = new Texture(url, scene); //dynamicTexture;
+    plane.material.diffuseTexture.hasAlpha = false;
+    return plane;
   }

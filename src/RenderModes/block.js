@@ -48,7 +48,6 @@ export default class BlockTIRenderer extends BaseRenderer {
         return box;
     }
 
-
     render(lines) {
         let segments = new Array();
         let gcodeLineIndex = new Array(); //file index when segmenet is rendered
@@ -129,6 +128,11 @@ export default class BlockTIRenderer extends BaseRenderer {
 
                 if (colorData[colorIdx + 3] > 0.5 && colorData[colorIdx + 3] < 1) {
                     colorData[colorIdx + 3] += 0.02;
+
+                    let percent = (colorData[colorIdx + 3] - 0.9) * 10;
+                    colorData[colorIdx] = this.lerp(this.progressColor.r, segments[idx].color.r, percent )
+                    colorData[colorIdx + 1] = this.lerp(this.progressColor.g, segments[idx].color.g, percent )
+                    colorData[colorIdx + 2] = this.lerp(this.progressColor.b, segments[idx].color.b, percent )
                 }
 
                 if (colorData[colorIdx + 3] >= 1 && !completed[idx]) {

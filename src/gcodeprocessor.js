@@ -154,6 +154,9 @@ export default class {
 
     this.lastUpdate = Date.now()
     this.g1AsExtrusion = false;
+
+    this.firstGCodeByte = 0;
+    this.lastGCodeByte = 0;
   }
 
   doUpdate() {
@@ -292,6 +295,8 @@ export default class {
     this.skip = false
     this.isSupport = false
     this.currentTool = 0
+    this.firstGCodeByte = 0
+    this.lastGCodeByte = 0
   }
 
   async processGcodeFile(file, renderQuality, clearCache) {
@@ -347,8 +352,9 @@ export default class {
       }    
 
       if (!line.startsWith(';')) {
+        if (this.firstGCodeByte === 0) { this.firstGCodeByte = filePosition; }
+        this.lastGCodeByte = filePosition
         this.processLine(line, filePosition)
-        // this.processLineV2(line, filePosition);
       } else if (this.slicer && this.slicer.isTypeComment(line)) {
         this.isSupport = this.slicer.isSupport()
         if (this.colorMode === ColorMode.Feature) {

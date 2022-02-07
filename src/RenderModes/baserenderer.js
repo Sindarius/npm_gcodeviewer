@@ -18,6 +18,7 @@ export class BaseRenderer {
         this.vertexAlpha = false;
         this.forceRedraw = false;
         this.material = null;
+        this.fadeRate = 0.2;
     }
 
         //Used for rendering visual
@@ -30,6 +31,9 @@ export class BaseRenderer {
             this.liveTrackingShowSolid = to;
         }
     
+        lerp(start, end, percent){
+            return start + (end - start) * percent;
+        }
    
 
 }
