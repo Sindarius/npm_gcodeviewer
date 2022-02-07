@@ -127,7 +127,7 @@ export default class {
         return
       }
 
-      this.scene.render(true, true)
+      this.scene.render(true)
       //Update light 2 position
       light2.position = this.scene.cameras[0].position
     })
@@ -181,13 +181,14 @@ export default class {
           this.scene.activeCamera.alpha = 3 * Math.PI / 2;
             break;
         }
-      this.scene.render(true, true)
+      this.scene.render(true)
+      this.scene.render(true)
     })
   }
 
   resize() {
     this.engine.resize()
-    this.scene.render(true, true)
+    this.scene.render(true)
   }
 
   refreshUI() {
@@ -206,7 +207,8 @@ export default class {
       this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y)
       this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2)
     }
-    this.scene.render(true, true)
+    this.scene.render(true)
+    this.scene.render(true)
   }
 
   lastLoadFailed() {
@@ -266,7 +268,7 @@ export default class {
     }
 
     this.travelVisible = visible
-    this.scene.render(true, true)
+    this.scene.render(true)
   }
   getProgressColor() {
     let progressColor = localStorage.getItem('progressColor')
@@ -444,7 +446,7 @@ export default class {
 
   forceRender() {
     if (this.scene) {
-      this.scene.render(true, true)
+      this.scene.render(true)
     }
   }
 }
