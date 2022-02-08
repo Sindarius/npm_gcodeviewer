@@ -6,13 +6,19 @@ import { Plane } from '@babylonjs/core/Maths/math.plane'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { Space } from '@babylonjs/core/Maths/math.axis'
-import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
 import '@babylonjs/core/Rendering/edgesRenderer'
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera'
 import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
 import { version } from '../package.json' 
+import { StandardMaterial, SceneLoader } from '@babylonjs/core'
+import "@babylonjs/loaders/OBJ/"
+import { JRNozzle } from './models'
+
+
+
+
 
 //import '@babylonjs/core/Debug/debugLayer'
 //import '@babylonjs/inspector'
@@ -387,14 +393,21 @@ export default class {
   buildtoolCursor() {
     if (this.toolCursor !== undefined) return
     this.toolCursor = new TransformNode('toolCursorContainer')
-    this.toolCursorMesh = MeshBuilder.CreateCylinder('toolCursorMesh', { diameterTop: 0, diameterBottom: 1 }, this.scene)
+    SceneLoader.ShowLoadingScreen = false;
+    SceneLoader.Append('', JRNozzle, this.scene, undefined, undefined, undefined, ".obj")
+    this.toolCursorMesh = this.scene.getMeshByName("JRNozzle");
     this.toolCursorMesh.parent = this.toolCursor
-    this.toolCursorMesh.position = new Vector3(0, 3, 0)
-    this.toolCursorMesh.rotate(Axis.X, Math.PI, Space.LOCAL)
-    this.toolCursorMesh.scaling = new Vector3(3, 3, 3)
+    this.toolCursorMesh.rotate(Axis.X, Math.PI / 2, Space.LOCAL)
+    this.toolCursorMesh.rotate(Axis.Y, Math.PI, Space.LOCAL)
+    this.toolCursorMesh.rotate(Axis.Z, Math.PI , Space.LOCAL)
+    this.toolCursorMesh.scaling = new Vector3(-1,1,1)
     this.toolCursorMesh.isVisible = this.toolCursorVisible
     this.toolCursorMesh.renderingGroupId = 2
     this.registerClipIgnore(this.toolCursorMesh)
+
+    let mat = new StandardMaterial('nozzleMaterial', this.scene)
+    this.toolCursorMesh.material = mat;
+    mat.diffuseColor = new Color3(1.0, 0.766, 0.336)
   }
   updateRenderQuality(renderQuality) {
     this.renderQuality = renderQuality

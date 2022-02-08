@@ -177,7 +177,6 @@ export function makeTextPlane(scene, text, color, bgColor, width, height) {
     var source = new XMLSerializer().serializeToString(html);
     var blob = new Blob([doctype + source], { type: 'image/svg+xml' });
     var url = window.URL.createObjectURL(blob);
-    console.log(url)
 
     let plane = MeshBuilder.CreatePlane('TextPlane', { width: width, height: height}, scene);
     plane.material = new StandardMaterial('TextPlaneMaterial', scene);
