@@ -1,465 +1,487 @@
-'use strict'
+'use strict';
 
-import { Engine } from '@babylonjs/core/Engines/engine'
-import { Scene } from '@babylonjs/core/scene'
-import { Plane } from '@babylonjs/core/Maths/math.plane'
-import { Color3 } from '@babylonjs/core/Maths/math.color'
-import { Vector3 } from '@babylonjs/core/Maths/math.vector'
-import { Space } from '@babylonjs/core/Maths/math.axis'
-import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
-import '@babylonjs/core/Rendering/edgesRenderer'
-import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera'
-import { PointLight } from '@babylonjs/core/Lights/pointLight'
-import { Axis } from '@babylonjs/core/Maths/math.axis'
-import { version } from '../package.json' 
-import { StandardMaterial, SceneLoader } from '@babylonjs/core'
-import "@babylonjs/loaders/OBJ/"
-import { JRNozzle } from './models'
+import { Engine } from '@babylonjs/core/Engines/engine';
+import { Scene } from '@babylonjs/core/scene';
+import { Plane } from '@babylonjs/core/Maths/math.plane';
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Space } from '@babylonjs/core/Maths/math.axis';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
+import '@babylonjs/core/Rendering/edgesRenderer';
+import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
+import { PointLight } from '@babylonjs/core/Lights/pointLight';
+import { Axis } from '@babylonjs/core/Maths/math.axis';
+import { version } from '../package.json';
 
-
-
-
+import { StandardMaterial, SceneLoader } from '@babylonjs/core';
+import '@babylonjs/loaders/OBJ/';
+import { JRNozzle } from './models';
 
 //import '@babylonjs/core/Debug/debugLayer'
 //import '@babylonjs/inspector'
 
-import gcodeProcessor from './gcodeprocessor.js'
-import Bed from './bed.js'
-import BuildObjects from './buildobjects.js'
-import Axes from './axes.js'
-import { createViewBox, registerViewBoxCallback } from './viewbox'
+import gcodeProcessor from './gcodeprocessor.js';
+import Bed from './bed.js';
+import BuildObjects from './buildobjects.js';
+import Axes from './axes.js';
+import { createViewBox, registerViewBoxCallback } from './viewbox';
 
 export default class {
   constructor(canvas) {
-    this.lastLoadKey = 'lastLoadFailed'
-    this.fileData
-    this.fileSize = 0
-    this.gcodeProcessor = new gcodeProcessor()
-    this.maxHeight = 0
-    this.minHeight = 0
-    this.sceneBackgroundColor = '#000000'
-    this.canvas = canvas
-    this.scene = {}
-    this.loading = false
-    this.toolVisible = false
-    this.toolCursor
-    this.toolCursorMesh
-    this.toolCursorVisible = true
-    this.travelVisible = false
-    this.debug = false
-    this.zTopClipValue
-    this.zBottomClipValue
-    this.cancelHitTimer = 0
-    this.pause = false
+    this.lastLoadKey = 'lastLoadFailed';
+    this.fileData;
+    this.fileSize = 0;
+    this.gcodeProcessor = new gcodeProcessor();
+    this.maxHeight = 0;
+    this.minHeight = 0;
+    this.sceneBackgroundColor = '#000000';
+    this.canvas = canvas;
+    this.scene = {};
+    this.loading = false;
+    this.toolVisible = false;
+    this.travelVisible = false;
+    this.debug = false;
+    this.zTopClipValue;
+    this.zBottomClipValue;
+    this.cancelHitTimer = 0;
+    this.pause = false;
 
-    this.cameraInertia = localStorage.getItem('cameraInertia') === 'true'
+    this.cameraInertia = localStorage.getItem('cameraInertia') === 'true';
 
     //objects
-    this.bed
-    this.buildObjects
-    this.axes
+    this.bed;
+    this.buildObjects;
+    this.axes;
 
-    this.renderQuality = Number(localStorage.getItem('renderQuality'))
+    this.renderQuality = Number(localStorage.getItem('renderQuality'));
     if (this.renderQuality === undefined || this.renderQuality === null) {
-      this.renderQuality = 1
+      this.renderQuality = 1;
     }
 
-    this.renderTimeout = 1000
+    this.renderTimeout = 1000;
   }
   getMaxHeight() {
-    return this.maxHeight
+    return this.maxHeight;
   }
   getMinHeight() {
-    return this.minHeight
+    return this.minHeight;
   }
 
   setCameraType(arcRotate) {
     if (arcRotate) {
-      this.scene.activeCamera = this.orbitCamera
+      this.scene.activeCamera = this.orbitCamera;
     } else {
-      this.scene.activeCamera = this.flyCamera
+      this.scene.activeCamera = this.flyCamera;
     }
   }
   setZClipPlane(top, bottom) {
-    this.zTopClipValue = -top
-    this.zBottomClipValue = bottom
+    this.zTopClipValue = -top;
+    this.zBottomClipValue = bottom;
     if (bottom > top) {
-      this.zTopClipValue = bottom + 1
+      this.zTopClipValue = bottom + 1;
     }
-    this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue)
-    this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue)
-    this.scene.render()
+    this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue);
+    this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue);
+    this.scene.render();
   }
 
   isArcRotateCameraStopped(camera) {
-    return camera.inertialAlphaOffset === 0 && camera.inertialBetaOffset === 0 && camera.inertialRadiusOffset === 0 && camera.inertialPanningX === 0 && camera.inertialPanningY === 0
+    return camera.inertialAlphaOffset === 0 && camera.inertialBetaOffset === 0 && camera.inertialRadiusOffset === 0 && camera.inertialPanningX === 0 && camera.inertialPanningY === 0;
   }
 
   init() {
-    console.info(`GCode Viewer - Sindarius - ${version} `)
+    console.info(`GCode Viewer - Sindarius - ${version} `);
     this.engine = new Engine(this.canvas, true, {
       doNotHandleContextLost: true
-    })
-    this.engine.enableOfflineSupport = false
-    this.scene = new Scene(this.engine)
+    });
+    this.engine.enableOfflineSupport = false;
+    this.scene = new Scene(this.engine);
     if (this.debug) {
       // this.scene.debugLayer.show({ embedMode: true });
     }
-    this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor())
+    this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor());
 
-    this.bed = new Bed(this.scene)
+    this.bed = new Bed(this.scene);
     this.bed.registerClipIgnore = (mesh) => {
-      this.registerClipIgnore(mesh)
-    }
-    var bedCenter = this.bed.getCenter()
+      this.registerClipIgnore(mesh);
+    };
+    var bedCenter = this.bed.getCenter();
 
     // Add a camera to the scene and attach it to the canvas
-    this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene)
-    this.orbitCamera.attachControl(false)
+    this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
+    this.orbitCamera.attachControl(false);
 
-    this.orbitCamera.invertRotation = false
-    this.orbitCamera.attachControl(this.canvas, false)
-    this.orbitCamera.maxZ = 100000
-    this.orbitCamera.lowerRadiusLimit = 5
-    this.updateCameraInertiaProperties()
+    this.orbitCamera.invertRotation = false;
+    this.orbitCamera.attachControl(this.canvas, false);
+    this.orbitCamera.maxZ = 100000;
+    this.orbitCamera.lowerRadiusLimit = 5;
+    this.updateCameraInertiaProperties();
 
     // Add lights to the scene
     //var light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), this.scene);
-    var light2 = new PointLight('light2', new Vector3(0, 1, -1), this.scene)
-    light2.diffuse = new Color3(1, 1, 1)
-    light2.specular = new Color3(1, 1, 1)
+    var light2 = new PointLight('light2', new Vector3(0, 1, -1), this.scene);
+    light2.diffuse = new Color3(1, 1, 1);
+    light2.specular = new Color3(1, 1, 1);
     this.engine.runRenderLoop(() => {
       if (this.pause || (Date.now() - this.gcodeProcessor.lastUpdate > this.renderTimeout && this.isArcRotateCameraStopped(this.orbitCamera))) {
-        return
+        return;
       }
 
-      this.scene.render(true)
+      this.scene.render(true);
       //Update light 2 position
-      light2.position = this.scene.cameras[0].position
-    })
+      light2.position = this.scene.cameras[0].position;
+    });
 
-    this.buildObjects = new BuildObjects(this.scene)
+    this.buildObjects = new BuildObjects(this.scene);
     this.buildObjects.getMaxHeight = () => {
-      return this.gcodeProcessor.getMaxHeight()
-    }
+      return this.gcodeProcessor.getMaxHeight();
+    };
     this.buildObjects.registerClipIgnore = (mesh) => {
-      this.registerClipIgnore(mesh)
-    }
-    this.bed.buildBed()
+      this.registerClipIgnore(mesh);
+    };
+    this.bed.buildBed();
 
-    this.axes = new Axes(this.scene)
+    this.axes = new Axes(this.scene);
     this.axes.registerClipIgnore = (mesh) => {
-      this.registerClipIgnore(mesh)
+      this.registerClipIgnore(mesh);
+    };
+    this.axes.render();
+
+    this.resetCamera();
+
+    createViewBox(this.engine, this.scene, this.orbitCamera);
+
+    registerViewBoxCallback((position) => {
+      this.setCameraPosition(position);
+    });
+  }
+
+  setCameraPosition(lookVector) {
+    var bedCenter = this.bed.getCenter();
+    var bedSize = this.bed.getSize();
+    this.scene.activeCamera.radius = bedSize.x * 1.5;
+    this.scene.activeCamera.target = new Vector3(bedCenter.x, bedCenter.z, bedCenter.y);
+    let target = Vector3.Zero();
+
+    let distance = (lookVector.x !== 0 && lookVector.y !== 0 && lookVector.z !== 0) ? 1.35 : 1.75
+
+    switch (lookVector.x) {
+      case 1:
+        target.x = bedCenter.x - bedSize.x * distance;
+        break;
+      case 0:
+        target.x = bedCenter.x;
+        break;
+      case -1:
+        target.x = bedCenter.x + bedSize.x * distance;
+        break;
     }
-    this.axes.render()
 
-    this.resetCamera()
+    switch (lookVector.y) {
+      case 1:
+        target.y = bedCenter.z - bedSize.z * distance;
+        break;
+      case 0:
+        target.y = bedCenter.z;
+        break;
+      case -1:
+        target.y = bedCenter.z + bedSize.z * distance;
+        break;
+    }
 
-    createViewBox(this.engine, this.scene, this.orbitCamera)
+    switch (lookVector.z) {
+      case 1:
+        target.z = bedCenter.y - bedSize.y * distance;
+        break;
+      case 0:
+        target.z = bedCenter.y;
+        break;
+      case -1:
+        target.z = bedCenter.y + bedSize.y * distance;
+        break;
+    }
 
-    registerViewBoxCallback((scene, name) => { 
-      var bedCenter = this.bed.getCenter()
-      var bedSize = this.bed.getSize()
-      this.scene.activeCamera.radius = bedCenter.x * 3;
-      this.scene.activeCamera.target = new Vector3(bedCenter.x, bedCenter.z, bedCenter.y)
+    if (lookVector.x === 0 && lookVector.z === 0) {
+      this.scene.activeCamera.target = new Vector3(bedCenter.x, 0, bedCenter.y);      
+      this.scene.activeCamera.position = target;
+      this.scene.activeCamera.alpha = (3 * Math.PI) / 2;
+    }
+    else{
+      this.scene.activeCamera.position = target;
+    }
 
-      switch(name){
-        case 'Front':
-          this.scene.activeCamera.position = new Vector3(bedCenter.x, bedCenter.z, -bedSize.y * 1.25)
-            break;
-        case 'Back': {
-          this.scene.activeCamera.position = new Vector3(bedCenter.x, bedCenter.z, bedSize.y * 2.25)
-        } break;
-        case 'Right':
-          this.scene.activeCamera.position = new Vector3(bedSize.x * 2.25 , bedCenter.z, bedCenter.y)
-            break;
-        case 'Left':
-          this.scene.activeCamera.position = new Vector3(-bedSize.x * 1.25 , bedCenter.z, bedCenter.y)
-            break;
-        case 'Top':
-          this.scene.activeCamera.target = new Vector3(bedCenter.x, 0, bedCenter.y)
-          this.scene.activeCamera.position = new Vector3(bedCenter.x, bedSize.z * 1.25, bedCenter.y)
-          this.scene.activeCamera.alpha = 3*  Math.PI / 2;
-            break;
-        case 'Bottom':
-          this.scene.activeCamera.target = new Vector3(bedCenter.x, 0, bedCenter.y)
-          this.scene.activeCamera.position = new Vector3(bedCenter.x, -bedSize.z * 2.25, bedCenter.y)
-          this.scene.activeCamera.alpha = 3 * Math.PI / 2;
-            break;
-        }
-      this.scene.render(true)
-      this.scene.render(true)
-    })
+    this.scene.render(true);
+    this.scene.render(true);
   }
 
   resize() {
-    this.engine.resize()
-    this.scene.render(true)
+    this.engine.resize();
+    this.scene.render(true);
   }
 
   refreshUI() {
-    setTimeout(function () {}, 0)
+    setTimeout(function () {}, 0);
   }
 
   resetCamera() {
-    var bedCenter = this.bed.getCenter()
-    var bedSize = this.bed.getSize()
+    var bedCenter = this.bed.getCenter();
+    var bedSize = this.bed.getSize();
     if (this.bed.isDelta) {
-      this.scene.activeCamera.radius = bedCenter.x
-      this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y)
-      this.scene.activeCamera.position = new Vector3(-bedSize.x, bedSize.z, -bedSize.x)
+      this.scene.activeCamera.radius = bedCenter.x;
+      this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
+      this.scene.activeCamera.position = new Vector3(-bedSize.x, bedSize.z, -bedSize.x);
     } else {
       this.scene.activeCamera.radius = bedCenter.x * 3;
-      this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y)
-      this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2)
+      this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
+      this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2);
     }
-    this.scene.render(true)
-    this.scene.render(true)
+    this.scene.render(true);
+    this.scene.render(true);
   }
 
   lastLoadFailed() {
-    if (!localStorage) return false
-    return localStorage.getItem(this.lastLoadKey) === 'true'
+    if (!localStorage) return false;
+    return localStorage.getItem(this.lastLoadKey) === 'true';
   }
   setLoadFlag() {
     if (localStorage) {
-      localStorage.setItem(this.lastLoadKey, 'true')
+      localStorage.setItem(this.lastLoadKey, 'true');
     }
   }
 
   clearLoadFlag() {
     if (localStorage) {
-      localStorage.setItem(this.lastLoadKey, '')
-      localStorage.removeItem(this.lastLoadKey)
+      localStorage.setItem(this.lastLoadKey, '');
+      localStorage.removeItem(this.lastLoadKey);
     }
   }
 
   async processFile(fileContents) {
-    this.clearScene()
-    this.refreshUI()
+    this.clearScene();
+    this.refreshUI();
 
     if (!fileContents) {
-      this.fileData = 0
-      this.fileSize = 0
+      this.fileData = 0;
+      this.fileSize = 0;
     } else {
-      this.fileData = fileContents
-      this.fileSize = fileContents.length
+      this.fileData = fileContents;
+      this.fileSize = fileContents.length;
     }
 
-    this.gcodeProcessor.setProgressColor(this.getProgressColor())
-    this.gcodeProcessor.scene = this.scene
+    this.gcodeProcessor.setProgressColor(this.getProgressColor());
+    this.gcodeProcessor.scene = this.scene;
 
     if (this.lastLoadFailed()) {
-      console.error('Last rendering failed dropping to SBC quality')
-      this.updateRenderQuality(1)
-      this.clearLoadFlag()
+      console.error('Last rendering failed dropping to SBC quality');
+      this.updateRenderQuality(1);
+      this.clearLoadFlag();
     }
-    this.setLoadFlag()
-    await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality)
-    this.clearLoadFlag()
+    this.setLoadFlag();
+    await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality);
+    this.clearLoadFlag();
 
-    await this.gcodeProcessor.createMesh(this.scene)
-    this.gcodeProcessor.loadingComplete()
-    this.maxHeight = this.gcodeProcessor.getMaxHeight()
-    this.minHeight = this.gcodeProcessor.getMinHeight()
-    this.toggleTravels(this.travelVisible)
-    this.setCursorVisiblity(this.toolCursorVisible)
+    await this.gcodeProcessor.createMesh(this.scene);
+    this.gcodeProcessor.loadingComplete();
+    this.maxHeight = this.gcodeProcessor.getMaxHeight();
+    this.minHeight = this.gcodeProcessor.getMinHeight();
+    this.toggleTravels(this.travelVisible);
+    this.setCursorVisiblity(this.toolCursorVisible);
   }
 
   toggleTravels(visible) {
     for (const mesh of this.scene.meshes) {
       if (mesh.name === 'travels') {
-        mesh.isVisible = visible
+        mesh.isVisible = visible;
       }
     }
 
-    this.travelVisible = visible
-    this.scene.render(true)
+    this.travelVisible = visible;
+    this.scene.render(true);
   }
   getProgressColor() {
-    let progressColor = localStorage.getItem('progressColor')
+    let progressColor = localStorage.getItem('progressColor');
     if (progressColor === null) {
-      progressColor = '#FFFFFF'
+      progressColor = '#FFFFFF';
     }
-    return progressColor
+    return progressColor;
   }
   setProgressColor(value) {
-    localStorage.setItem('progressColor', value)
-    this.gcodeProcessor.setProgressColor(value)
+    localStorage.setItem('progressColor', value);
+    this.gcodeProcessor.setProgressColor(value);
   }
 
   getBackgroundColor() {
-    let color = localStorage.getItem('sceneBackgroundColor')
+    let color = localStorage.getItem('sceneBackgroundColor');
     if (color === null) {
-      color = '#000000'
+      color = '#000000';
     }
-    return color
+    return color;
   }
   setBackgroundColor(color) {
     if (this.scene !== null && this.scene !== undefined) {
       if (color.length > 7) {
-        color = color.substring(0, 7)
+        color = color.substring(0, 7);
       }
-      this.scene.clearColor = Color3.FromHexString(color)
-      this.scene.render()
+      this.scene.clearColor = Color3.FromHexString(color);
+      this.scene.render();
     }
-    localStorage.setItem('sceneBackgroundColor', color)
+    localStorage.setItem('sceneBackgroundColor', color);
   }
   clearScene(clearFileData) {
     if (this.fileData && clearFileData) {
-      this.fileData = ''
+      this.fileData = '';
     }
-    this.gcodeProcessor.unregisterEvents()
+    this.gcodeProcessor.unregisterEvents();
 
     for (let idx = this.scene.meshes.length - 1; idx >= 0; idx--) {
-      let sceneEntity = this.scene.meshes[idx]
+      let sceneEntity = this.scene.meshes[idx];
       if (sceneEntity && this.debug) {
-        console.log(`Disposing ${sceneEntity.name}`)
+        console.log(`Disposing ${sceneEntity.name}`);
       }
-      this.scene.removeMesh(sceneEntity)
+      this.scene.removeMesh(sceneEntity);
       if (sceneEntity && typeof sceneEntity.dispose === 'function') {
-        sceneEntity.dispose(false, true)
+        sceneEntity.dispose(false, true);
       }
     }
 
     for (let idx = this.scene.materials.length - 1; idx >= 0; idx--) {
-      let sceneEntity = this.scene.materials[idx]
-      if (sceneEntity.name !== 'solidMaterial') continue
+      let sceneEntity = this.scene.materials[idx];
+      if (sceneEntity.name !== 'solidMaterial') continue;
       if (sceneEntity && this.debug) {
-        console.log(`Disposing ${sceneEntity.name}`)
+        console.log(`Disposing ${sceneEntity.name}`);
       }
-      this.scene.removeMaterial(sceneEntity)
+      this.scene.removeMaterial(sceneEntity);
       if (sceneEntity && typeof sceneEntity.dispose === 'function') {
-        sceneEntity.dispose(false, true)
+        sceneEntity.dispose(false, true);
       }
     }
 
     if (this.toolCursor) {
-      this.toolCursor.dispose(false, true)
-      this.toolCursor = undefined
+      this.toolCursor.dispose(false, true);
+      this.toolCursor = undefined;
     }
 
-    this.buildtoolCursor()
-    this.bed.buildBed()
-    this.axes.render()
+    this.buildtoolCursor();
+    this.bed.buildBed();
+    this.axes.render();
   }
   async reload() {
-    this.clearScene()
-    await this.processFile(this.fileData)
+    this.clearScene();
+    await this.processFile(this.fileData);
   }
 
   getRenderMode() {
-    return this.gcodeProcessor.renderMode
+    return this.gcodeProcessor.renderMode;
   }
   setCursorVisiblity(visible) {
-    if (this.scene === undefined) return
+    if (this.scene === undefined) return;
     if (this.toolCursor === undefined) {
-      this.buildtoolCursor()
+      this.buildtoolCursor();
     }
-    this.toolCursorMesh.isVisible = visible
-    this.toolCursorVisible = visible
-    this.scene.render()
+    this.toolCursorMesh.isVisible = visible;
+    this.toolCursorVisible = visible;
+    this.scene.render();
   }
   updateToolPosition(position) {
-    let x = 0
-    let y = 0
-    let z = 0
-    this.buildtoolCursor()
+    let x = 0;
+    let y = 0;
+    let z = 0;
+    this.buildtoolCursor();
     for (var index = 0; index < position.length; index++) {
       switch (position[index].axes) {
         case 'X':
           {
-            x = position[index].position
+            x = position[index].position;
           }
-          break
+          break;
         case 'Y':
           {
-            y = position[index].position
+            y = position[index].position;
           }
-          break
+          break;
         case 'Z':
           {
-            z = position[index].position * (this.gcodeProcessor.spreadLines ? this.gcodeProcessor.spreadLineAmount : 1)
+            z = position[index].position * (this.gcodeProcessor.spreadLines ? this.gcodeProcessor.spreadLineAmount : 1);
           }
-          break
+          break;
       }
 
-      this.toolCursor.setAbsolutePosition(new Vector3(x, z, y))
+      this.toolCursor.setAbsolutePosition(new Vector3(x, z, y));
       if (this.toolCursorMesh.isVisible) {
-        this.scene.render()
+        this.scene.render();
       }
     }
   }
   buildtoolCursor() {
-    if (this.toolCursor !== undefined) return
-    this.toolCursor = new TransformNode('toolCursorContainer')
+    if (this.toolCursor !== undefined) return;
+    this.toolCursor = new TransformNode('toolCursorContainer');
     SceneLoader.ShowLoadingScreen = false;
-    SceneLoader.Append('', JRNozzle, this.scene, undefined, undefined, undefined, ".obj")
-    this.toolCursorMesh = this.scene.getMeshByName("JRNozzle");
-    this.toolCursorMesh.parent = this.toolCursor
-    this.toolCursorMesh.rotate(Axis.X, Math.PI / 2, Space.LOCAL)
-    this.toolCursorMesh.rotate(Axis.Y, Math.PI, Space.LOCAL)
-    this.toolCursorMesh.rotate(Axis.Z, Math.PI , Space.LOCAL)
-    this.toolCursorMesh.scaling = new Vector3(-1,1,1)
-    this.toolCursorMesh.isVisible = this.toolCursorVisible
-    this.toolCursorMesh.renderingGroupId = 2
-    this.registerClipIgnore(this.toolCursorMesh)
+    SceneLoader.Append('', JRNozzle, this.scene, undefined, undefined, undefined, '.obj');
+    this.toolCursorMesh = this.scene.getMeshByName('JRNozzle');
+    this.toolCursorMesh.parent = this.toolCursor;
+    this.toolCursorMesh.rotate(Axis.X, Math.PI / 2, Space.LOCAL);
+    this.toolCursorMesh.rotate(Axis.Y, Math.PI, Space.LOCAL);
+    this.toolCursorMesh.rotate(Axis.Z, Math.PI, Space.LOCAL);
+    this.toolCursorMesh.scaling = new Vector3(-1, 1, 1);
+    this.toolCursorMesh.isVisible = this.toolCursorVisible;
+    this.toolCursorMesh.renderingGroupId = 2;
+    this.registerClipIgnore(this.toolCursorMesh);
 
-    let mat = new StandardMaterial('nozzleMaterial', this.scene)
+    let mat = new StandardMaterial('nozzleMaterial', this.scene);
     this.toolCursorMesh.material = mat;
-    mat.diffuseColor = new Color3(1.0, 0.766, 0.336)
+    mat.diffuseColor = new Color3(1.0, 0.766, 0.336);
   }
   updateRenderQuality(renderQuality) {
-    this.renderQuality = renderQuality
+    this.renderQuality = renderQuality;
     if (localStorage) {
-      localStorage.setItem('renderQuality', renderQuality)
+      localStorage.setItem('renderQuality', renderQuality);
     }
   }
   registerClipIgnore(mesh) {
-    if (mesh === undefined || mesh === null) return
+    if (mesh === undefined || mesh === null) return;
     mesh.onBeforeRenderObservable.add(() => {
-      this.scene.clipPlane = null
-      this.scene.clipPlane2 = null
-    })
+      this.scene.clipPlane = null;
+      this.scene.clipPlane2 = null;
+    });
     mesh.onAfterRenderObservable.add(() => {
-      this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue)
-      this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue)
-    })
+      this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue);
+      this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue);
+    });
   }
   updateCameraInertiaProperties() {
     if (this.cameraInertia) {
-      this.orbitCamera.speed = 2
-      this.orbitCamera.inertia = 0.9
-      this.orbitCamera.panningInertia = 0.9
-      this.orbitCamera.inputs.attached.keyboard.angularSpeed = 0.005
-      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility = 2
-      this.orbitCamera.inputs.attached.keyboard.panningSensibility = 2
-      this.orbitCamera.angularSensibilityX = 1000
-      this.orbitCamera.angularSensibilityY = 1000
-      this.orbitCamera.panningSensibility = 10
-      this.orbitCamera.wheelPrecision = 1
+      this.orbitCamera.speed = 2;
+      this.orbitCamera.inertia = 0.9;
+      this.orbitCamera.panningInertia = 0.9;
+      this.orbitCamera.inputs.attached.keyboard.angularSpeed = 0.005;
+      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility = 2;
+      this.orbitCamera.inputs.attached.keyboard.panningSensibility = 2;
+      this.orbitCamera.angularSensibilityX = 1000;
+      this.orbitCamera.angularSensibilityY = 1000;
+      this.orbitCamera.panningSensibility = 10;
+      this.orbitCamera.wheelPrecision = 1;
     } else {
-      this.orbitCamera.speed = 500
-      this.orbitCamera.inertia = 0
-      this.orbitCamera.panningInertia = 0
-      this.orbitCamera.inputs.attached.keyboard.angularSpeed = 0.05
-      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility = 0.5
-      this.orbitCamera.inputs.attached.keyboard.panningSensibility = 0.5
-      this.orbitCamera.angularSensibilityX = 200
-      this.orbitCamera.angularSensibilityY = 200
-      this.orbitCamera.panningSensibility = 2
-      this.orbitCamera.wheelPrecision = 0.25
+      this.orbitCamera.speed = 500;
+      this.orbitCamera.inertia = 0;
+      this.orbitCamera.panningInertia = 0;
+      this.orbitCamera.inputs.attached.keyboard.angularSpeed = 0.05;
+      this.orbitCamera.inputs.attached.keyboard.zoomingSensibility = 0.5;
+      this.orbitCamera.inputs.attached.keyboard.panningSensibility = 0.5;
+      this.orbitCamera.angularSensibilityX = 200;
+      this.orbitCamera.angularSensibilityY = 200;
+      this.orbitCamera.panningSensibility = 2;
+      this.orbitCamera.wheelPrecision = 0.25;
     }
   }
   setCameraInertia(enabled) {
-    this.cameraInertia = enabled
-    localStorage.setItem('cameraInertia', enabled)
-    this.updateCameraInertiaProperties()
+    this.cameraInertia = enabled;
+    localStorage.setItem('cameraInertia', enabled);
+    this.updateCameraInertiaProperties();
   }
 
   forceRender() {
     if (this.scene) {
-      this.scene.render(true)
+      this.scene.render(true);
     }
   }
 }

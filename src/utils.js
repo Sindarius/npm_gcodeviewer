@@ -139,25 +139,25 @@ export function pauseProcessing() {
   }
 
 
-export function makeTextPlane(scene, text, color, bgColor, width, height) {
+export function makeTextPlane(scene, text, color, bgColor, width, height, fontSize = 75) {
     var svg = d3
       .create('svg')
       .attr('width', 400)
-      .attr('height', 200)
+      .attr('height', 300)
 
     svg.append('rect')
     .attr('x',0)
     .attr('y',0)
     .attr('width', 400 )
-    .attr('height', 200)
+    .attr('height', 300)
     .attr('fill', '#333333')
 
     svg
       .append('text')
       .attr('x', 200)
-      .attr('y', 100)
+      .attr('y', 150)
       .attr('font-family', 'Roboto')
-      .attr('font-size', '75px')
+      .attr('font-size', fontSize + 'px')
       .attr('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .attr('fill', bgColor)
