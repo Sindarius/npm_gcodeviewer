@@ -6,7 +6,7 @@ import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { makeTextPlane } from './utils';
 import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
-import { MeshBuilder } from '@babylonjs/core';
+import { MeshBuilder, StandardMaterial } from '@babylonjs/core';
 
 function buildPlane(scene, name, rotationVector) {
   var plane = makeTextPlane(scene, name, 'white', 'white', 6, 6, 90);
@@ -44,7 +44,16 @@ function buildCorner(scene, name, cornerVector) {
   sphere.isPickable = true;
 }
 
+
+export let edgeMaterial = null;
+
 function buildEdge(scene, name, edgeVector) {
+
+  if(!edgeMaterial){
+    edgeMaterial = new StandardMaterial("edgematerial", scene)
+    edgeMaterial.diffuseColor = new Color3(0.5,0.5,0.5);
+  }
+
   var box = MeshBuilder.CreateBox(name, { width: 0.35, height: 5.8, depth: 0.35 }, scene);
 
   let position = Vector3.Zero();
@@ -64,6 +73,7 @@ function buildEdge(scene, name, edgeVector) {
     z: Math.sign(edgeVector.z) * -1
   };
   box.position = position;
+  box.material= edgeMaterial;
 }
 
 var ViewBoxCallback;

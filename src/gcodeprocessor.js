@@ -652,7 +652,7 @@ export default class {
 
           if (this.currentTool >= this.tools.length) {
             this.currentTool = this.currentTool % this.tools.length //Deal with a lot of manual tool changes
-          } else if (extruder < 0) {
+          } else if (newTool < 0) {
             this.currentTool = 0
             extruder = 0 // Cover the case where someone sets a tool to a -1 value (I believe Prusa use this for MMU pre-print selection)
           }
