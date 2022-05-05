@@ -1,6 +1,6 @@
-import resolve from '@rollup/plugin-node-resolve';
+//import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
-import commonjs from '@rollup/plugin-commonjs';
+//import commonjs from '@rollup/plugin-commonjs';
 import rollupjson from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
 
@@ -19,7 +19,7 @@ export default [
             //resolve(),
             babel({ babelHelpers: 'bundled'  }),
             terser({
-                ecma: 2018,
+                ecma: 2020,
                 mangle: { toplevel: false },
                 module : true,
                 compress: {
@@ -28,6 +28,6 @@ export default [
                 output: { quote_style: 1 }
               }),
               rollupjson()
-        ]
+        ],
     }
 ];
