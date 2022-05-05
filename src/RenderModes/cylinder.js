@@ -98,21 +98,22 @@ export default class CylinderRenderer extends BaseRenderer {
             let positionUpdated = scrubbing;
             for (let idx = 0; idx < segments.length; idx++) {
 
+                let matrixIdx = idx * 16;
                 let colorIdx = idx * 4;
 
                 if (scrubbing) {
                     if (gcodeLineIndex[idx] < this.currentFilePosition) {
                         segments[idx].color.toArray(colorData, colorIdx);
-                        segments[idx].matrix.copyToArray(matrixData, idx * 16);
+                        segments[idx].matrix.copyToArray(matrixData,  matrixIdx);
                         colorData[colorIdx + 3] = 1;
                         completed[idx] = true;
                     }
                     else {
                         if(transparentValue == 0){
-                            this.lostInSpace.copyToArray(matrixData, idx * 16);
+                            this.lostInSpace.copyToArray(matrixData,  matrixIdx);
                         }
                         else{
-                            segments[idx].matrix.copyToArray(matrixData, idx * 16);
+                            segments[idx].matrix.copyToArray(matrixData,  matrixIdx);
                         }
                         colorData[colorIdx + 3] = transparentValue;
                         completed[idx] = false;
@@ -128,7 +129,7 @@ export default class CylinderRenderer extends BaseRenderer {
                     this.progressColor.toArray(colorData, colorIdx);
                     colorData[colorIdx + 3] = 0.9;
                     colorUpdated = true;
-                    segments[idx].matrix.copyToArray(matrixData, idx * 16);
+                    segments[idx].matrix.copyToArray(matrixData, matrixIdx);
                     positionUpdated = true;
                     continue;
                 }
