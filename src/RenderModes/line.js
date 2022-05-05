@@ -54,7 +54,7 @@ export default class LineRenderer extends BaseRenderer {
     lineMesh.isPickable = false;
     lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
     this.material = new StandardMaterial("m", this.scene);
-    lineMesh.material = this.material;
+    //lineMesh.material = this.material;
     lineMesh.material.backFaceCulling = false;
     lineMesh.material.forceDepthWrite = true;
     lineMesh.material.specularColor = this.specularColor;
