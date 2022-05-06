@@ -53,7 +53,7 @@ export default class LineRenderer extends BaseRenderer {
     lineMesh.isVisible = true;
     lineMesh.isPickable = false;
     lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
-    this.material = new StandardMaterial("m", this.scene);
+    //this.material = new StandardMaterial("m", this.scene);
     //lineMesh.material = this.material;
     lineMesh.material.backFaceCulling = false;
     lineMesh.material.forceDepthWrite = true;

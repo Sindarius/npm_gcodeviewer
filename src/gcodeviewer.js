@@ -1,22 +1,26 @@
 'use strict';
 
 import { Engine } from '@babylonjs/core/Engines/engine';
+import { WebGPUEngine } from '@babylonjs/core/Engines/webgpuEngine';
+
 import { Scene } from '@babylonjs/core/scene';
 import { Plane } from '@babylonjs/core/Maths/math.plane';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Space } from '@babylonjs/core/Maths/math.axis';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
-import '@babylonjs/core/Rendering/edgesRenderer';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Axis } from '@babylonjs/core/Maths/math.axis';
 import { version } from '../package.json';
 
 import { StandardMaterial, SceneLoader } from '@babylonjs/core';
+import '@babylonjs/core/Rendering/edgesRenderer';
 import '@babylonjs/loaders/OBJ/';
-import { JRNozzle } from './models';
 
+import "@babylonjs/core/Engines/WebGPU/Extensions"
+import { JRNozzle } from './models';
+import './models';
 //import '@babylonjs/core/Debug/debugLayer'
 //import '@babylonjs/inspector'
 
@@ -45,6 +49,7 @@ export default class {
     this.zBottomClipValue;
     this.cancelHitTimer = 0;
     this.pause = false;
+    this.hqNozzle = true;
 
     this.cameraInertia = localStorage.getItem('cameraInertia') === 'true';
 
@@ -89,11 +94,26 @@ export default class {
     return camera.inertialAlphaOffset === 0 && camera.inertialBetaOffset === 0 && camera.inertialRadiusOffset === 0 && camera.inertialPanningX === 0 && camera.inertialPanningY === 0;
   }
 
-  init() {
+  async init() {
     console.info(`GCode Viewer - Sindarius - ${version} `);
-    this.engine = new Engine(this.canvas, true, {
-      doNotHandleContextLost: true
-    });
+
+      const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
+      if (webGPUSupported) {
+        console.log("WebGPU Supported")
+        this.engine = new WebGPUEngine(this.canvas, {doNotHandleContextLost : true} );
+        await this.engine.initAsync();
+        console.log(this.engine)
+//        await new Promise(r => setTimeout(r, 10000));
+      }
+      else {
+        console.log("WebGPU Not Supported")
+        this.engine = new Engine(this.canvas, true, {
+          doNotHandleContextLost: true
+        });
+      }
+
+  
+
     this.engine.enableOfflineSupport = false;
     this.scene = new Scene(this.engine);
     if (this.debug) {
@@ -416,14 +436,21 @@ export default class {
   buildtoolCursor() {
     if (this.toolCursor !== undefined) return;
     this.toolCursor = new TransformNode('toolCursorContainer');
+
     SceneLoader.ShowLoadingScreen = false;
     SceneLoader.Append('', JRNozzle, this.scene, undefined, undefined, undefined, '.obj');
-    this.toolCursorMesh = this.scene.getMeshByName('JRNozzle');
-    this.toolCursorMesh.parent = this.toolCursor;
-    this.toolCursorMesh.rotate(Axis.X, Math.PI / 2, Space.LOCAL);
-    this.toolCursorMesh.rotate(Axis.Y, Math.PI, Space.LOCAL);
-    this.toolCursorMesh.rotate(Axis.Z, Math.PI, Space.LOCAL);
-    this.toolCursorMesh.scaling = new Vector3(-1, 1, 1);
+    if(this.hqNozzle){
+      this.toolCursorMesh = this.scene.getMeshByName('JRNozzle');
+      this.toolCursorMesh.parent = this.toolCursor;
+      this.toolCursorMesh.rotate(Axis.X, Math.PI / 2, Space.LOCAL);
+      this.toolCursorMesh.rotate(Axis.Y, Math.PI, Space.LOCAL);
+      this.toolCursorMesh.rotate(Axis.Z, Math.PI, Space.LOCAL);
+      this.toolCursorMesh.scaling = new Vector3(-1, 1, 1);
+    }
+    else{
+      //load cone version
+    }
+
     this.toolCursorMesh.isVisible = this.toolCursorVisible;
     this.toolCursorMesh.renderingGroupId = 2;
     this.registerClipIgnore(this.toolCursorMesh);

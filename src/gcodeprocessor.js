@@ -352,7 +352,7 @@ export default class {
       }    
 
       if (!line.startsWith(';')) {
-        if (this.firstGCodeByte === 0) { this.firstGCodeByte = filePosition; }
+        if (this.firstGCodeByte === 0 && line.length > 0) { this.firstGCodeByte = filePosition; }
         this.lastGCodeByte = filePosition
         this.processLine(line, filePosition)
       } else if (this.slicer && this.slicer.isTypeComment(line)) {
@@ -856,7 +856,16 @@ export default class {
   useSpecularColor(useSpecular) {
     let color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0)
     this.specularColor = color
-    this.renderInstances.forEach((r) => (r.material.specularColor = color))
+    this.renderInstances.forEach((r) => {
+      if(r.material != null && r.material.hasOwnProperty('specularColor')){
+        try{
+        r.material.specularColor = color
+        }
+        catch{
+
+        }
+      }
+    })
     if (this.scene) {
       this.scene.render(true, true)
     }
