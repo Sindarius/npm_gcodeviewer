@@ -1,7 +1,6 @@
 import { BaseRenderer } from "./baserenderer";
 import { VertexBuffer } from "@babylonjs/core/Meshes/buffer";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 
 export default class LineRenderer extends BaseRenderer {
@@ -53,8 +52,6 @@ export default class LineRenderer extends BaseRenderer {
     lineMesh.isVisible = true;
     lineMesh.isPickable = false;
     lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
-    //this.material = new StandardMaterial("m", this.scene);
-    //lineMesh.material = this.material;
     lineMesh.material.backFaceCulling = false;
     lineMesh.material.forceDepthWrite = true;
     lineMesh.material.specularColor = this.specularColor;
