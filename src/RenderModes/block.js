@@ -80,17 +80,18 @@ export default class BlockTIRenderer extends BaseRenderer {
         }
 
         let box = this.buildBox();
+        box.alphaIndex = this.meshIndex;
+        box.renderingGroupId = 2;
         box.thinInstanceSetBuffer('matrix', matrixData, 16);
         box.thinInstanceSetBuffer('color', colorData, 4);
         box.thinInstanceRefreshBoundingInfo();
-        box.alphaIndex = this.meshIndex;
-        box.renderingGroupId = 2;
+        
 
         let updateSegments = () => {
             let colorUpdated = scrubbing;
             let positionUpdated = scrubbing;
             for (let idx = 0; idx < segments.length; idx++) {
-
+                let matrixIdx = idx * 16;
                 let colorIdx = idx * 4;
 
                 if (scrubbing) {
@@ -121,18 +122,18 @@ export default class BlockTIRenderer extends BaseRenderer {
                     this.progressColor.toArray(colorData, colorIdx);
                     colorData[colorIdx + 3] = 0.9;
                     colorUpdated = true;
-                    segments[idx].matrix.copyToArray(matrixData, idx * 16);
+                    segments[idx].matrix.copyToArray(matrixData, matrixIdx);
                     positionUpdated = true;
                     continue;
                 }
 
                 if (colorData[colorIdx + 3] > 0.5 && colorData[colorIdx + 3] < 1) {
                     colorData[colorIdx + 3] += 0.02;
-
                     let percent = (colorData[colorIdx + 3] - 0.9) * 10;
                     colorData[colorIdx] = this.lerp(this.progressColor.r, segments[idx].color.r, percent )
                     colorData[colorIdx + 1] = this.lerp(this.progressColor.g, segments[idx].color.g, percent )
                     colorData[colorIdx + 2] = this.lerp(this.progressColor.b, segments[idx].color.b, percent )
+                    colorUpdated = true;
                 }
 
                 if (colorData[colorIdx + 3] >= 1 && !completed[idx]) {

@@ -8,6 +8,14 @@ import { makeTextPlane } from './utils';
 import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
 import { MeshBuilder, StandardMaterial } from '@babylonjs/core';
 
+var viewBoxScene = null;
+var showView = true;
+
+
+export function showViewBox(show){
+  showView = show;
+}
+
 function buildPlane(scene, name, rotationVector) {
   var plane = makeTextPlane(scene, name, 'white', 'white', 6, 6, 90);
   plane.name = name;
@@ -83,10 +91,10 @@ export function registerViewBoxCallback(func) {
 }
 
 export function createViewBox(engine, mainScene, mainCamera) {
-  var scene2 = new Scene(engine);
-  scene2.autoClear = false;
+  viewBoxScene = new Scene(engine);
+  viewBoxScene.autoClear = false;
 
-  var camera2 = new ArcRotateCamera('camera1', (5 * Math.PI) / 8, (5 * Math.PI) / 8, 13, new Vector3(0, 0, 0), scene2);
+  var camera2 = new ArcRotateCamera('camera1', (5 * Math.PI) / 8, (5 * Math.PI) / 8, 13, new Vector3(0, 0, 0), viewBoxScene);
 
   // Where to display
   camera2.viewport = new Viewport(0.85, 0.85, 0.15, 0.15);
@@ -94,56 +102,57 @@ export function createViewBox(engine, mainScene, mainCamera) {
 
   // Dupplicate scene info
   mainScene.afterRender = () => {
-    scene2.render();
+    if(!showView) return;
+    viewBoxScene.render();
     camera2.alpha = mainCamera.alpha;
     camera2.beta = mainCamera.beta;
     camera2.radius = 15;
   };
 
-  var light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene2);
+  var light = new HemisphericLight('light1', new Vector3(0, 1, 0), viewBoxScene);
   light.intensity = 0.8;
-  var light2 = new HemisphericLight('light2', new Vector3(-1, -0.5, 0), scene2);
+  var light2 = new HemisphericLight('light2', new Vector3(-1, -0.5, 0), viewBoxScene);
   light2.intensity = 0.8;
 
   /*********************Create Box***************/
 
   let x = 3.9;
-  buildEdge(scene2, 'FrontLeft', new Vector3(-x, 0, -x));
-  buildEdge(scene2, 'BackLeft', new Vector3(-x, 0, x));
-  buildEdge(scene2, 'BackRight', new Vector3(x, 0, x));
-  buildEdge(scene2, 'FrontRight', new Vector3(x, 0, -x));
+  buildEdge(viewBoxScene, 'FrontLeft', new Vector3(-x, 0, -x));
+  buildEdge(viewBoxScene, 'BackLeft', new Vector3(-x, 0, x));
+  buildEdge(viewBoxScene, 'BackRight', new Vector3(x, 0, x));
+  buildEdge(viewBoxScene, 'FrontRight', new Vector3(x, 0, -x));
 
-  buildEdge(scene2, 'TopFront', new Vector3(0, x, -x));
-  buildEdge(scene2, 'TopBack', new Vector3(0, x, x));
-  buildEdge(scene2, 'TopLeft', new Vector3(-x, x, 0));
-  buildEdge(scene2, 'TopRight', new Vector3(x, x, 0));
+  buildEdge(viewBoxScene, 'TopFront', new Vector3(0, x, -x));
+  buildEdge(viewBoxScene, 'TopBack', new Vector3(0, x, x));
+  buildEdge(viewBoxScene, 'TopLeft', new Vector3(-x, x, 0));
+  buildEdge(viewBoxScene, 'TopRight', new Vector3(x, x, 0));
 
-  buildEdge(scene2, 'BottomFront', new Vector3(0, -x, -x));
-  buildEdge(scene2, 'BottomBack', new Vector3(0, -x, x));
-  buildEdge(scene2, 'BottomLeft', new Vector3(-x, -x, 0));
-  buildEdge(scene2, 'BottomRight', new Vector3(x, -x, 0));
+  buildEdge(viewBoxScene, 'BottomFront', new Vector3(0, -x, -x));
+  buildEdge(viewBoxScene, 'BottomBack', new Vector3(0, -x, x));
+  buildEdge(viewBoxScene, 'BottomLeft', new Vector3(-x, -x, 0));
+  buildEdge(viewBoxScene, 'BottomRight', new Vector3(x, -x, 0));
 
-  buildCorner(scene2, 'FrontTopLeft', new Vector3(-3, 3, -3));
-  buildCorner(scene2, 'FrontTopRight', new Vector3(3, 3, -3));
-  buildCorner(scene2, 'BackTopLeft', new Vector3(-3, 3, 3));
-  buildCorner(scene2, 'BackTopRight', new Vector3(3, 3, 3));
+  buildCorner(viewBoxScene, 'FrontTopLeft', new Vector3(-3, 3, -3));
+  buildCorner(viewBoxScene, 'FrontTopRight', new Vector3(3, 3, -3));
+  buildCorner(viewBoxScene, 'BackTopLeft', new Vector3(-3, 3, 3));
+  buildCorner(viewBoxScene, 'BackTopRight', new Vector3(3, 3, 3));
 
-  buildCorner(scene2, 'FrontBottomLeft', new Vector3(-3, -3, -3));
-  buildCorner(scene2, 'FrontBottomRight', new Vector3(3, -3, -3));
-  buildCorner(scene2, 'BackBottomLeft', new Vector3(-3, -3, 3));
-  buildCorner(scene2, 'BackBottomRight', new Vector3(3, -3, 3));
+  buildCorner(viewBoxScene, 'FrontBottomLeft', new Vector3(-3, -3, -3));
+  buildCorner(viewBoxScene, 'FrontBottomRight', new Vector3(3, -3, -3));
+  buildCorner(viewBoxScene, 'BackBottomLeft', new Vector3(-3, -3, 3));
+  buildCorner(viewBoxScene, 'BackBottomRight', new Vector3(3, -3, 3));
 
-  buildPlane(scene2, 'Front', new Vector3(0, 0, 1));
-  buildPlane(scene2, 'Right', new Vector3(-1, 0, 0));
-  buildPlane(scene2, 'Back', new Vector3(0, 0, -1));
-  buildPlane(scene2, 'Left', new Vector3(1, 0, 0));
-  buildPlane(scene2, 'Top', new Vector3(0, -1, 0));
-  buildPlane(scene2, 'Bottom', new Vector3(0, 1, 0));
+  buildPlane(viewBoxScene, 'Front', new Vector3(0, 0, 1));
+  buildPlane(viewBoxScene, 'Right', new Vector3(-1, 0, 0));
+  buildPlane(viewBoxScene, 'Back', new Vector3(0, 0, -1));
+  buildPlane(viewBoxScene, 'Left', new Vector3(1, 0, 0));
+  buildPlane(viewBoxScene, 'Top', new Vector3(0, -1, 0));
+  buildPlane(viewBoxScene, 'Bottom', new Vector3(0, 1, 0));
 
-  scene2.onPointerDown = function (evt, pick) {
+  viewBoxScene.onPointerDown = function (evt, pick) {
     if (pick.distance > 0 && ViewBoxCallback) {
       ViewBoxCallback(pick.pickedMesh.metadata);
-      scene2.render(true);
+      viewBoxScene.render(true);
     }
   };
 }

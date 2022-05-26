@@ -21,6 +21,7 @@ import '@babylonjs/loaders/OBJ/';
 import "@babylonjs/core/Engines/WebGPU/Extensions"
 import { JRNozzle } from './models';
 import './models';
+
 //import '@babylonjs/core/Debug/debugLayer'
 //import '@babylonjs/inspector'
 
@@ -64,6 +65,7 @@ export default class {
     }
 
     this.renderTimeout = 1000;
+    
   }
   getMaxHeight() {
     return this.maxHeight;
@@ -94,16 +96,18 @@ export default class {
     return camera.inertialAlphaOffset === 0 && camera.inertialBetaOffset === 0 && camera.inertialRadiusOffset === 0 && camera.inertialPanningX === 0 && camera.inertialPanningY === 0;
   }
 
-  async init() {
+  async init(useWebGPU) {
+    if(useWebGPU === undefined) useWebGPU = false;
+
     console.info(`GCode Viewer - Sindarius - ${version} `);
 
+      
       const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
-      if (webGPUSupported) {
+      if (webGPUSupported && useWebGPU) {
         console.log("WebGPU Supported")
         this.engine = new WebGPUEngine(this.canvas, {doNotHandleContextLost : true} );
         await this.engine.initAsync();
         console.log(this.engine)
-//        await new Promise(r => setTimeout(r, 10000));
       }
       else {
         console.log("WebGPU Not Supported")
@@ -117,7 +121,7 @@ export default class {
     this.engine.enableOfflineSupport = false;
     this.scene = new Scene(this.engine);
     if (this.debug) {
-      // this.scene.debugLayer.show({ embedMode: true });
+       //this.scene.debugLayer.show({ embedMode: true });
     }
     this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor());
 
@@ -170,10 +174,10 @@ export default class {
     this.resetCamera();
 
     createViewBox(this.engine, this.scene, this.orbitCamera);
-
     registerViewBoxCallback((position) => {
       this.setCameraPosition(position);
     });
+    
   }
 
   setCameraPosition(lookVector) {

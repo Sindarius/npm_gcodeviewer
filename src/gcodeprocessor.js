@@ -157,6 +157,10 @@ export default class {
 
     this.firstGCodeByte = 0;
     this.lastGCodeByte = 0;
+
+    this.zBelt = false
+    this.firmwareRetraction = false;
+
   }
 
   doUpdate() {
@@ -410,12 +414,15 @@ export default class {
             line.gcodeLineNumber = lineNumber
             line.start = this.currentPosition.clone()
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight
-            //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code
-            if (command[0].toUpperCase() == 'G1' && ((!this.tools[this.currentTool]?.isAdditive() ?? true) || this.g1AsExtrusion)) {
+            //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code -- Disabled -- PrusaSlicer appears to only be writing G1 atm
+            //((!this.tools[this.currentTool]?.isAdditive() ?? true))|| 
+            if ((command[0] === 'G1' && this.g1AsExtrusion)) { 
               line.extruding = true
               line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone()
               this.maxHeight = this.currentPosition.y //trying to get the max height of the model.
+              console.log(`EH ${this.g1AsExtrusion}`)
             }
+            
 
             for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
               let token = tokens[tokenIdx]
@@ -563,6 +570,12 @@ export default class {
 
           }
           break
+        case 'G10':
+          this.firmwareRetraction = true;  
+        break;
+        case 'G11':
+          this.firmwareRetraction = false;
+        break;
         case 'G28':
           //Home
           tokens = tokenString.split(/(?=[GXYZ])/)
