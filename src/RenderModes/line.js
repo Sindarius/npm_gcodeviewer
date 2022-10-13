@@ -27,7 +27,7 @@ export default class LineRenderer extends BaseRenderer {
       let line = lines[lineIdx];
       let tool = this.tools[line.tool];
 
-      gcodeLineIndex.push(line.gcodeLineNumber);
+      gcodeLineIndex.push(line.gcodeFilePosition);
       let data = line.getPoints(this.scene);
       lineArray.push(data.points);
       colorArray.push(data.colors);

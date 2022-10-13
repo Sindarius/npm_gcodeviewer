@@ -64,7 +64,7 @@ export default class BlockTIRenderer extends BaseRenderer {
             data.matrix = segment.matrix;
             data.color = segment.color;
             segments.push(data);
-            gcodeLineIndex.push(segment.props.gcodeLineNumber);
+            gcodeLineIndex.push(segment.props.gcodeFilePosition);
         }
 
         let matrixData = new Float32Array(16 * segments.length);
@@ -155,8 +155,8 @@ export default class BlockTIRenderer extends BaseRenderer {
 
         if(lines.length == 0) return;
         
-        let minFilePosition = lines[0].gcodeLineNumber
-        let maxFilePosition = lines.slice(-1)[0].gcodeLineNumber;
+        let minFilePosition = lines[0].gcodeFilePosition
+        let maxFilePosition = lines.slice(-1)[0].gcodeFilePosition;
 
         let lastPosition = 0;
         let scrubbing = false;

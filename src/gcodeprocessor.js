@@ -13,6 +13,7 @@ import VoxelRenderer from './RenderModes/voxel'
 import LineRenderer from './RenderModes/line'
 
 import SlicerFactory from './SlicerSpecific/slicerfactory'
+import { MaterialHelper } from '@babylonjs/core'
 
 export const RenderMode = {
   Block: 1,
@@ -36,6 +37,10 @@ export default class {
     this.renderVersion = RenderMode.Line
     this.absolute = true //Track if we are in relative or absolute mode.
     this.lines = []
+    this.renderedLines = [] //Lines that have been rendered - we'll use this to get the current file position etc.
+    this.currentLineNumber = 0; //Index of current rendered line
+    this.lastFilePositionIndex = 0;
+
     this.travels = []
     this.sps
     this.maxHeight = 0
@@ -43,7 +48,7 @@ export default class {
     this.lineCount = 0
     this.renderMode = ''
     this.extruderCount = 10
-    this.layerDictionary = {}
+    this.layerDictionary = []
 
     //We'll look at the last 2 layer heights for now to determine layer height.
     this.previousLayerHeight = 0
@@ -158,7 +163,14 @@ export default class {
     this.firstGCodeByte = 0;
     this.lastGCodeByte = 0;
 
+    // Work in progress
     this.zBelt = false
+    this.hyp = 1 / Math.cos((90 - 35) / 180 * Math.PI)
+    this.adj = Math.tan((90 - 35) / 180 * Math.PI)
+    this.currentOffset = 0
+    this.nozzlePosition = new Vector3(0, 0, 0)
+
+
     this.firmwareRetraction = false;
 
   }
@@ -301,6 +313,8 @@ export default class {
     this.currentTool = 0
     this.firstGCodeByte = 0
     this.lastGCodeByte = 0
+    this.layerDictionary = []
+    this.renderedLines = []
   }
 
   async processGcodeFile(file, renderQuality, clearCache) {
@@ -339,6 +353,7 @@ export default class {
 
     lines.reverse()
     let filePosition = 0 //going to make this file position
+    let lineNumber = 0; //current line number
     this.timeStamp = Date.now()
 
     while (lines.length) {
@@ -347,7 +362,8 @@ export default class {
         return
       }
       var line = lines.pop()
-      filePosition += line.length + 1
+      filePosition += line.length + 1 //add 1 for the removed line break
+      lineNumber++
       line.trim()
 
       //If perimter only check feature to see if it can be removed.
@@ -358,7 +374,7 @@ export default class {
       if (!line.startsWith(';')) {
         if (this.firstGCodeByte === 0 && line.length > 0) { this.firstGCodeByte = filePosition; }
         this.lastGCodeByte = filePosition
-        this.processLine(line, filePosition)
+        this.processLine(line, lineNumber, filePosition)
       } else if (this.slicer && this.slicer.isTypeComment(line)) {
         this.isSupport = this.slicer.isSupport()
         if (this.colorMode === ColorMode.Feature) {
@@ -391,7 +407,7 @@ export default class {
     this.renderInstances.forEach((inst) => (inst.isLoading = false))
   }
 
-  async processLine(tokenString, lineNumber) {
+  async processLine(tokenString, lineNumber, filePosition) {
     //Remove the comments in the line
     let commentIndex = tokenString.indexOf(';')
     if (commentIndex > -1) {
@@ -412,6 +428,7 @@ export default class {
             var line = new gcodeLine()
             line.tool = this.currentTool
             line.gcodeLineNumber = lineNumber
+            line.gcodeFilePosition = filePosition
             line.start = this.currentPosition.clone()
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight
             //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code -- Disabled -- PrusaSlicer appears to only be writing G1 atm
@@ -423,7 +440,6 @@ export default class {
               console.log(`EH ${this.g1AsExtrusion}`)
             }
             
-
             for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
               let token = tokens[tokenIdx]
               switch (token[0]) {
@@ -431,17 +447,34 @@ export default class {
                   this.currentPosition.x = this.absolute ? Number(token.substring(1)) : this.currentPosition.x + Number(token.substring(1))
                   break
                 case 'Y':
+                  if(this.zBelt) {
+                    this.currentPosition.z = Number(token.substring(1)) + Number(token.substring(1)) * Math.cos(35 * Math.PI/ 180 )
+                    console.log(this.currentPosition.z)
+                  }
+                  else {
                   this.currentPosition.z = this.absolute ? Number(token.substring(1)) : this.currentPosition.z + Number(token.substring(1))
+                  }
                   break
                 case 'Z':
-                  this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1))
-                  if (this.currentPosition.y < this.minHeight) {
-                    this.minHeight = this.currentPosition.y
+                  if(this.zBelt){
+                    this.currentPosition.y = Number(token.substring(1) + Number(token.substring(1)) * Math.sin(35 * Math.PI/180))                    
+                    console.log(this.currentPosition.y)
                   }
-                  if (this.spreadLines) {
-                    this.currentPosition.y *= this.spreadLineAmount
+                  else {
+                    this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1))
+                    if(!this.lastY || this.lastY != this.currentPosition.y){
+                      this.lastY  = this.currentPosition.y;
+                      if(this.lastY == undefined)
+                      this.lastY = 0;
+                    }
+                    if (this.currentPosition.y < this.minHeight) {
+                      this.minHeight = this.currentPosition.y
+                    }
+                    if (this.spreadLines) {
+                      this.currentPosition.y *= this.spreadLineAmount
+                    }
                   }
-                  break
+                break
                 case 'E':
                   //Do not count retractions as extrusions
                   if (Number(token.substring(1)) > 0) {
@@ -470,6 +503,20 @@ export default class {
                   }
 
                   break
+              }
+            }
+
+
+            if(this.zBelt){
+              try{
+                if(this.currentOffset === 0){
+                  this.currentOffset = 0.20 * this.adj //hardcoded for now
+                }
+              let y_offset = this.currentPosition.y * this.adj - this.currentOffset;
+           
+              }
+              catch(e){
+                console.log(e)
               }
             }
 
@@ -522,6 +569,7 @@ export default class {
               if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport) {
                 this.previousLayerHeight = this.currentLayerHeight
                 this.currentLayerHeight = this.currentPosition.y
+                //this.layerDictionary.push({z : this.currentPosition.y, lineNumber : lineNumber});
               }
             } else if (this.renderTravels && !line.extruding) {
               line.color = new Color4(1, 0, 0, 1)
@@ -541,6 +589,7 @@ export default class {
               let line = new gcodeLine()
               line.tool = this.currentTool
               line.gcodeLineNumber = lineNumber
+              line.gcodeFilePosition = filePosition
               line.layerHeight = this.currentLayerHeight - this.previousLayerHeight
               line.start = curPt.clone()
               line.end = new Vector3(point.x, point.y, point.z)
@@ -562,10 +611,11 @@ export default class {
 
             //Last point to currentposition
             this.currentPosition = new Vector3(curPt.x, curPt.y, curPt.z)
-
+            
             if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport) {
               this.previousLayerHeight = this.currentLayerHeight
               this.currentLayerHeight = this.currentPosition.y
+              //this.layerDictionary.push({z : this.currentPosition.y, lineNumber : lineNumber});
             }
 
           }
@@ -727,8 +777,12 @@ export default class {
     renderer.progressColor = this.progressColor
     renderer.vertexAlpha = this.vertexAlpha
     this.renderInstances.push(renderer)
+    
+    this.renderedLines.push(...this.lines)
+
     await renderer.render(this.lines)
     this.lines = []
+
     this.scene.render()
   }
 
@@ -752,7 +806,23 @@ export default class {
 
   updateFilePosition(filePosition) {
     //Some renderers will ahve multiple instances like block and line
-    this.renderInstances.forEach((r) => r.updateFilePosition(filePosition))
+    this.renderInstances.forEach((r) => r.updateFilePosition(filePosition))    
+    try{
+    if(filePosition < this.renderedLines[this.lastFilePositionIndex].gcodeFilePosition){
+      this.lastFilePositionIndex = 0
+      this.currentLineNumber = 0
+    }}
+    catch {
+      this.lastFilePositionIndex = 0
+      this.currentLineNumber = 0
+    }
+
+    for(let i = this.lastFilePositionIndex; i < this.renderedLines.length; i++){
+      if(this.renderedLines[i].gcodeFilePosition > filePosition) { break; }
+        this.currentLineNumber = this.renderedLines[i].gcodeLineNumber;
+        this.nozzlePosition =  this.renderedLines[i].end;
+        this.lastFilePositionIndex = i;
+    }
     this.doUpdate()
   }
 

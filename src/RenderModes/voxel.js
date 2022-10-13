@@ -108,7 +108,7 @@ export default class VoxelRenderer extends BaseRenderer {
 
             if (voxelArray === undefined || voxelArray.length === 0) continue;
 
-            let voxelEvent = new VoxelEvent(gcodeLine.gcodeLineNumber, tool.isAdditive());
+            let voxelEvent = new VoxelEvent(gcodeLine.gcodeFilePosition, tool.isAdditive());
             for (let voxelIdx = 0; voxelIdx < voxelArray.length; voxelIdx++) {
                 let voxel = voxelArray[voxelIdx];
                 let idxX = Math.floor(voxel.x / this.voxelWidth);

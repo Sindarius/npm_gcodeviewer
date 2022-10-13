@@ -62,7 +62,7 @@ export default class {
     this.highlightMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new Color3(0.8, 0.8, 0.8));
     this.cancelledMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new Color3(1, 0, 0), 0.4);
     this.cancelledHighlightMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new Color3(1, 1, 0), 0.6);
-    let material = new Texture.CreateFromBase64String(this.xmark, 'checkerboard', this.scene);
+    let material = Texture.CreateFromBase64String(this.xmark, 'checkerboard', this.scene);
     this.cancelledMaterial.diffuseTexture = material;
     this.cancelledHighlightMaterial.diffuseTexture = material;
   }

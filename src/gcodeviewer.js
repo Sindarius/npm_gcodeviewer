@@ -35,6 +35,7 @@ export default class {
   constructor(canvas) {
     this.lastLoadKey = 'lastLoadFailed';
     this.fileData;
+    this.fileDataArray;
     this.fileSize = 0;
     this.gcodeProcessor = new gcodeProcessor();
     this.maxHeight = 0;
@@ -177,6 +178,10 @@ export default class {
     registerViewBoxCallback((position) => {
       this.setCameraPosition(position);
     });
+
+    setTimeout(() => {
+      this.forceRender()
+    }, 1000);
     
   }
 
@@ -293,6 +298,8 @@ export default class {
       this.fileSize = fileContents.length;
     }
 
+    this.fileDataArray = this.fileData.split('\n');
+
     this.gcodeProcessor.setProgressColor(this.getProgressColor());
     this.gcodeProcessor.scene = this.scene;
 
@@ -302,6 +309,7 @@ export default class {
       this.clearLoadFlag();
     }
     this.setLoadFlag();
+
     await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality);
     this.clearLoadFlag();
 
@@ -412,6 +420,12 @@ export default class {
     let y = 0;
     let z = 0;
     this.buildtoolCursor();
+    if(position instanceof Vector3){
+      x = position.x;
+      y = position.z;
+      z = position.y;
+    }
+    else{
     for (var index = 0; index < position.length; index++) {
       switch (position[index].axes) {
         case 'X':
@@ -430,11 +444,11 @@ export default class {
           }
           break;
       }
-
-      this.toolCursor.setAbsolutePosition(new Vector3(x, z, y));
-      if (this.toolCursorMesh.isVisible) {
-        this.scene.render();
-      }
+    }
+    }
+    this.toolCursor.setAbsolutePosition(new Vector3(x, z, y));
+    if (this.toolCursorMesh.isVisible) {
+      this.scene.render();
     }
   }
   buildtoolCursor() {
@@ -516,4 +530,32 @@ export default class {
       this.scene.render(true);
     }
   }
+
+  getLayers(){
+    return this.gcodeProcessor.layerDictionary;
+  }
+
+  getGCodeLine(numLines = 5){
+    try{
+      let startIdx = Math.max(0,this.gcodeProcessor.currentLineNumber - numLines);
+      let endIdx = Math.min(this.gcodeProcessor.currentLineNumber, this.fileDataArray.length  - 1);
+      return this.fileDataArray.slice(startIdx, endIdx).join('\r\n').trim();
+    }
+    catch{
+      return ""
+    }
+  }
+
+  getGCodeLineNumber(){
+    return this.gcodeProcessor.currentLineNumber
+  }
+
+  goToGCodeLine(lineNumber){
+    
+  }
+
+  simulateToolPosition(){
+    this.updateToolPosition(this.gcodeProcessor.nozzlePosition);
+  }
+
 }

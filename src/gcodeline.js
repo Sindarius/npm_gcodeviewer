@@ -12,6 +12,7 @@ export default class {
     this.end;
     this.extruding = false;
     this.gcodeLineNumber = 0;
+    this.gcodeFilePosition = 0;
     this.color;
     this.feedRate = 0;
     this.layerHeight = 0;
@@ -23,7 +24,7 @@ export default class {
 
   renderLine(scene) {
     var points = [this.start, this.end];
-    let lineMesh = Mesh.CreateLines('lines', points, scene);
+    let lineMesh = MeshBuilder.CreateLines('lines', points, scene);
     lineMesh.enableEdgesRendering();
     lineMesh.edgesWidth = 10;
     lineMesh.edgesColor = new Color4(1, 1, 0, 1);
@@ -69,6 +70,7 @@ export default class {
 
     p.props = {
       gcodeLineNumber: this.gcodeLineNumber,
+      gcodeFilePosition: this.gcodeFilePosition,
       originalColor: this.color,
     };
   }
@@ -91,6 +93,7 @@ export default class {
     p.color = this.color;
     p.props = {
       gcodeLineNumber: this.gcodeLineNumber,
+      gcodeFilePosition: this.gcodeFilePosition,
       originalColor: this.color,
     };
 
