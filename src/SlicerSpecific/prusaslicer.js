@@ -7,11 +7,11 @@ export default class PrusaSlicer extends SlicerBase {
         super();                                                                                                    
 
         this.featureList = {
-            'Perimeter': { color: new Color4(1, 0.9, .3, 1), perimeter: true, support : false },
+            'Perimeter': { color: new Color4(1, 0.9, .3, 1), perimeter: false, support : false },
             'External perimeter': { color: new Color4(1, 0.5, .2, 1), perimeter: true , support : false},
             'Internal infill': { color: new Color4(.59, .19, .16, 1), perimeter: false, support : false },
-            'Solid infill': { color: new Color4(.59, .19, .8, 1), perimeter: true , support : false},
-            'Top solid infill': { color: new Color4(0.95, .25, .25, 1), perimeter: true , support : false},
+            'Solid infill': { color: new Color4(.59, .19, .8, 1), perimeter: false , support : false},
+            'Top solid infill': { color: new Color4(0.95, .25, .25, 1), perimeter: false , support : false},
             'Bridge infill': { color: new Color4(.3, .5, .73, 1), perimeter: false , support : false},
             'Gap fill': { color: new Color4(1, 1, 1, 1), perimeter: false , support : false},
             'Skirt': { color: new Color4(0, .53, .43, 1), perimeter: false , support : false},

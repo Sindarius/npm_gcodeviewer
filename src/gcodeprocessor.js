@@ -13,7 +13,6 @@ import VoxelRenderer from './RenderModes/voxel'
 import LineRenderer from './RenderModes/line'
 
 import SlicerFactory from './SlicerSpecific/slicerfactory'
-import { MaterialHelper } from '@babylonjs/core'
 
 export const RenderMode = {
   Block: 1,
@@ -78,6 +77,7 @@ export default class {
     }
 
     this.progressColor = new Color4(0, 1, 0, 1)
+    this.keepProgressColor = false;
 
     //scene data
     this.lineMeshIndex = 0
@@ -361,26 +361,24 @@ export default class {
         this.cancelLoad = false
         return
       }
-      var line = lines.pop()
+      let line = lines.pop()
       filePosition += line.length + 1 //add 1 for the removed line break
       lineNumber++
       line.trim()
-
+      
       //If perimter only check feature to see if it can be removed.
-      if (this.perimeterOnly && this.slicer && this.slicer.isTypeComment(line) && this.slicer.isPerimeter()) {
-        this.currentColor = this.slicer.getFeatureColor()
-      }    
-
-      if (!line.startsWith(';')) {
-        if (this.firstGCodeByte === 0 && line.length > 0) { this.firstGCodeByte = filePosition; }
-        this.lastGCodeByte = filePosition
-        this.processLine(line, lineNumber, filePosition)
-      } else if (this.slicer && this.slicer.isTypeComment(line)) {
-        this.isSupport = this.slicer.isSupport()
-        if (this.colorMode === ColorMode.Feature) {
-          this.currentColor = this.slicer.getFeatureColor()
+        if (!line.startsWith(';')) {
+          this.slicer.isTypeComment(line)
+          let renderLine = !this.perimeterOnly || (this.slicer && this.slicer.isPerimeter())
+          if (this.firstGCodeByte === 0 && line.length > 0) { this.firstGCodeByte = filePosition; }
+          this.lastGCodeByte = filePosition
+          this.processLine(line, lineNumber, filePosition, renderLine)
+        } else if (this.slicer && this.slicer.isTypeComment(line)) {
+          this.isSupport = this.slicer.isSupport()
+          if (this.colorMode === ColorMode.Feature) {
+            this.currentColor = this.slicer.getFeatureColor()
+          }
         }
-      }
 
       if (Date.now() - this.timeStamp > 10) {
         if (this.loadingProgressCallback) {
@@ -388,8 +386,8 @@ export default class {
         }
         this.timeStamp = await pauseProcessing()
       }
-
       this.doUpdate()
+
     }
 
     //build the travel mesh
@@ -407,7 +405,7 @@ export default class {
     this.renderInstances.forEach((inst) => (inst.isLoading = false))
   }
 
-  async processLine(tokenString, lineNumber, filePosition) {
+  async processLine(tokenString, lineNumber, filePosition, renderLine = true) {
     //Remove the comments in the line
     let commentIndex = tokenString.indexOf(';')
     if (commentIndex > -1) {
@@ -559,6 +557,12 @@ export default class {
             //feed rate trimming was disabled (probably will remove)
             // let feedRateTrimming=  this.feedRateTrimming && this.currentFeedRate < this.avgFeed;
 
+
+            //Don't add the lines to to the collection for rendering purposes.
+            if(!renderLine){
+              return;
+            }
+
             if (spindleCutting || (lineTolerance && line.extruding)) {
               if(this.currentColor == null){
                 this.currentColor = new Color4(1,1,1,1);
@@ -606,6 +610,9 @@ export default class {
               {
                 console.log(line)
               }
+
+              if(!renderLine) { return }
+
               this.lines.push(line)
             })
 
@@ -615,7 +622,6 @@ export default class {
             if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport) {
               this.previousLayerHeight = this.currentLayerHeight
               this.currentLayerHeight = this.currentPosition.y
-              //this.layerDictionary.push({z : this.currentPosition.y, lineNumber : lineNumber});
             }
 
           }
