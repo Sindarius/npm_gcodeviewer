@@ -368,7 +368,7 @@ export default class {
       
       //If perimter only check feature to see if it can be removed.
         if (!line.startsWith(';')) {
-          this.slicer.isTypeComment(line)
+          if(this.slicer){ this.slicer.isTypeComment(line) }
           let renderLine = !this.perimeterOnly || (this.slicer && this.slicer.isPerimeter())
           if (this.firstGCodeByte === 0 && line.length > 0) { this.firstGCodeByte = filePosition; }
           this.lastGCodeByte = filePosition
