@@ -298,7 +298,15 @@ export default class {
       this.fileSize = fileContents.length;
     }
 
-    this.fileDataArray = this.fileData.split('\n');
+    this.fileDataArray = [];
+    try{ 
+      if(this.fileData !== null || this.fileData !== "") {
+        this.fileDataArray = this.fileData.split('\n');
+      } 
+    }
+    catch(e) {
+      this.fileDataArray = [];
+    }
 
     this.gcodeProcessor.setProgressColor(this.getProgressColor());
     this.gcodeProcessor.scene = this.scene;
