@@ -435,7 +435,6 @@ export default class {
               line.extruding = true
               line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone()
               this.maxHeight = this.currentPosition.y //trying to get the max height of the model.
-              console.log(`EH ${this.g1AsExtrusion}`)
             }
             
             for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
@@ -447,7 +446,6 @@ export default class {
                 case 'Y':
                   if(this.zBelt) {
                     this.currentPosition.z = Number(token.substring(1)) + Number(token.substring(1)) * Math.cos(35 * Math.PI/ 180 )
-                    console.log(this.currentPosition.z)
                   }
                   else {
                   this.currentPosition.z = this.absolute ? Number(token.substring(1)) : this.currentPosition.z + Number(token.substring(1))
@@ -456,7 +454,6 @@ export default class {
                 case 'Z':
                   if(this.zBelt){
                     this.currentPosition.y = Number(token.substring(1) + Number(token.substring(1)) * Math.sin(35 * Math.PI/180))                    
-                    console.log(this.currentPosition.y)
                   }
                   else {
                     this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1))
@@ -553,7 +550,7 @@ export default class {
             }
 
             let spindleCutting = this.hasSpindle && command[0] === 'G1'
-            let lineTolerance = line.length() >= this.lineLengthTolerance
+            let lineTolerance = this.g1AsExtrusion || (line.length() >= this.lineLengthTolerance) 
             //feed rate trimming was disabled (probably will remove)
             // let feedRateTrimming=  this.feedRateTrimming && this.currentFeedRate < this.avgFeed;
 
