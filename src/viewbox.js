@@ -7,7 +7,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { makeTextPlane } from './utils';
 import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
-import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 
 
 var viewBoxScene = null;
