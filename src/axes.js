@@ -59,7 +59,7 @@ export default class {
       return;
     }
 
-    this.axesMesh = new Mesh('axis');
+    this.axesMesh = new Mesh('axis', this.scene);
     this.registerClipIgnore(this.axesMesh);
 
     var axisX = Mesh.CreateLines('axisX', [Vector3.Zero(), new Vector3(this.size, 0, 0), new Vector3(this.size * 0.95, 0.05 * this.size, 0), new Vector3(this.size, 0, 0), new Vector3(this.size * 0.95, -0.05 * this.size, 0)], this.scene);
