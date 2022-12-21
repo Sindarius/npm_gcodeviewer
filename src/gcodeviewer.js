@@ -13,8 +13,8 @@ import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Axis } from '@babylonjs/core/Maths/math.axis';
 import { version } from '../package.json';
-
-import { StandardMaterial, SceneLoader } from '@babylonjs/core';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import '@babylonjs/core/Rendering/edgesRenderer';
 import '@babylonjs/loaders/OBJ/';
 

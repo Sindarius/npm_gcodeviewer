@@ -1,4 +1,5 @@
-import { StandardMaterial, SceneLoader } from '@babylonjs/core'
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import "@babylonjs/loaders/OBJ/"
 import { JRNozzle } from './models'
 

@@ -6,7 +6,9 @@ import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { makeTextPlane } from './utils';
 import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
-import { MeshBuilder, StandardMaterial } from '@babylonjs/core';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
+
 
 var viewBoxScene = null;
 var showView = true;
