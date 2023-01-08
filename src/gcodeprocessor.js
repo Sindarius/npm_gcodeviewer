@@ -776,13 +776,13 @@ export default class {
     } else if (this.renderVersion === RenderMode.Voxel) {
       renderer = new VoxelRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.voxelWidth, this.voxelHeight)
     }
-
     renderer.progressColor = this.progressColor
     renderer.vertexAlpha = this.vertexAlpha
     this.renderInstances.push(renderer)
     
-    this.renderedLines.push(...this.lines)
-
+    for (let idx = 0; idx < this.lines.length; idx++) { 
+      this.renderedLines.push(this.lines[idx])
+    }
     await renderer.render(this.lines)
     this.lines = []
 
