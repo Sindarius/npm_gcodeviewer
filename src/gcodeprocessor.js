@@ -331,7 +331,11 @@ export default class {
       return
     }
 
-    var lines = file.split('\n') //file.split(/\r\n|\n/);
+    var lines = file.split('\n')
+
+    //Extract metadata from slicer to set render settings
+    this.slicer.processComments(lines, this)
+
     //Get an opportunity to free memory before we strt generating 3d model
     if (typeof clearCache === 'function') {
       clearCache()

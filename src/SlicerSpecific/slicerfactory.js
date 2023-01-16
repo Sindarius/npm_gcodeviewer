@@ -2,6 +2,7 @@ import PrusaSlicer from './prusaslicer';
 import Cura from './cura'
 import SuperSlicer from './superslicer';
 import ideaMaker from './ideaMaker';
+import SlicerSpecificBase from './slicerbase';
 
 export default class SlicerFacotry {
     static getSlicer(gcode) {
@@ -20,6 +21,6 @@ export default class SlicerFacotry {
             return new ideaMaker();
         }
         
-        return null;
+        return new SlicerSpecificBase();
     }
 }

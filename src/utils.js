@@ -56,13 +56,25 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
     if (r) {
         let deltaX = x - currX;
         let deltaY = y - currY;
-        let dSquared = Math.pow(deltaX, 2) + Math.pow(deltaY, 2);
-        let hSquared = Math.pow(r,2) - dSquared / 4;
-        if (dSquared == 0 || hSquared < 0) {
+        
+        let dSquared = Math.sqrt(deltaX) + Math.sqrt(deltaY);
+        if (dSquared == 0) {
             return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
         }
-        let hDivD = Math.sqrt(hSquared / dSquared);
 
+        let hSquared = Math.sqrt(r) - dSquared / 4;
+        let hDivD = 0
+
+        if (hSquared >= 0) {
+            hDivD = Math.sqrt(hSquared / dSquared);    
+        }
+        else {
+            if(hSquared <  -0.02 * Math.sqrt(r)){
+                 return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
+            }
+            hDivD = 0;
+        }
+        
         // Ref RRF DoArcMove for details
         if ((cw && r < 0.0) || (!cw && r > 0.0)) {
             hDivD = -hDivD;

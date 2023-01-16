@@ -7,10 +7,13 @@ export default class SlicerSpecificBase {
         this.missingFeatures = []
     }
 
-    isTypeComment(comment) { }
-    getFeatureColor(comment) { }
+    isTypeComment(comment) { return false; }
+    getFeatureColor(comment) {new Color4(1, 1, 1, 1) }
     isPerimeter() { return this.perimeter; } // render all
     isSupport() { return this.support; } 
+
+    //Inherited versions to look for slicer specific comments like tool size, etc.
+    processComments(file, processor) { }
 
     reportMissingFeature(featureName){
         if(!this.missingFeatures.includes(featureName)){

@@ -69,4 +69,22 @@ export default class PrusaSlicer extends SlicerBase {
             return false;
         }
     } 
+
+    //Settings are kept at the bottom of the file in PrusaSlicer gcode
+    processComments(file, processor) {
+        for (let lineIdx = file.length - 350; lineIdx++; lineIdx < file.length){
+            let line = file[lineIdx];
+            //Pull out the nozzle diameter for each tool
+            if (line.includes('nozzle_diameter')) {
+                let equalSign = line.indexOf('=') + 1;
+                let diameters = line.substring(equalSign).split(',');
+                for (let toolIdx = 0; toolIdx < diameters.length; toolIdx++) { 
+                    if (processor.tools.length < toolIdx) {
+                        processor.tools[toolIdx].diameter = diameters[toolIdx];
+                    }
+                }
+            }
+        }
+    }
+    
 }

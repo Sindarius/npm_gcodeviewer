@@ -19,6 +19,7 @@ export class BaseRenderer {
         this.forceRedraw = false;
         this.material = null;
         this.fadeRate = 0.2;
+        this.transparentValue = 0.25;
     }
 
         //Used for rendering visual
