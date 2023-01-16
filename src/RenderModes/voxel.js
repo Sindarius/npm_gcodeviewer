@@ -134,7 +134,7 @@ export default class VoxelRenderer extends BaseRenderer {
 
                     if (!point) {
                         try {
-                            if (!layers[idxY].hasOwnProperty(idxX)) {
+                            if (!Object.prototype.hasOwnProperty.call(layers[idxY], idxX)) {
                                 layers[idxY][idxX] = {};
                             }
                             layers[idxY][idxX][idxZ] = { color: gcodeLine.color, voxelEvents: [voxelEvent] };
@@ -158,7 +158,7 @@ export default class VoxelRenderer extends BaseRenderer {
                             if (layers[cutY][idxX][idxZ]) {
                                 layers[cutY][idxX][idxZ].voxelEvents.push(voxelEvent);
                             } else {
-                                if (!layers[cutY].hasOwnProperty(idxX)) {
+                                if (!Object.prototype.hasOwnProperty.call(layers[cutY], idxX)) {
                                     layers[cutY][idxX] = {};
                                 }
                                 layers[cutY][idxX][idxZ] = { color: gcodeLine.color, voxelEvents: [voxelEvent] }
@@ -166,7 +166,7 @@ export default class VoxelRenderer extends BaseRenderer {
                         }
                         catch {
                             if (cutY < 0) continue;
-                            if (!layers[cutY].hasOwnProperty(idxX)) {
+                            if (!Object.prototype.hasOwnProperty.call(layers[cutY], idxX)) {
                                 layers[cutY][idxX] = {};
                             }
                             layers[cutY][idxX][idxZ] = { color: gcodeLine.color, voxelEvents: [voxelEvent] }
