@@ -7,15 +7,15 @@ export default class SuperSlicer extends SlicerBase {
         super();                                                                                                    
 
         this.featureList = {
-            'Perimeter': { color: new Color4(1, 0.9, .3, 1), perimeter: false, support : false },
-            'External perimeter': { color: new Color4(1, 0.5, .2, 1), perimeter: true , support : false},
-            'Internal infill': { color: new Color4(.59, .19, .16, 1), perimeter: false, support : false },
-            'Solid infill': { color: new Color4(.59, .19, .8, 1), perimeter: false , support : false},
-            'Top solid infill': { color: new Color4(0.95, .25, .25, 1), perimeter: false , support : false},
-            'Bridge infill': { color: new Color4(.3, .5, .73, 1), perimeter: false , support : false},
+            'Perimeter': { color: new Color4(1, 0.9, 0.3, 1), perimeter: false, support : false },
+            'External perimeter': { color: new Color4(1, 0.5, 0.2, 1), perimeter: true , support : false},
+            'Internal infill': { color: new Color4(0.59, 0.19, 0.16, 1), perimeter: false, support : false },
+            'Solid infill': { color: new Color4(0.59, 0.19, 0.8, 1), perimeter: false , support : false},
+            'Top solid infill': { color: new Color4(0.95, 0.25, 0.25, 1), perimeter: false , support : false},
+            'Bridge infill': { color: new Color4(0.3, 0.5, 0.73, 1), perimeter: false , support : false},
             'Gap fill': { color: new Color4(1, 1, 1, 1), perimeter: false , support : false},
-            'Skirt': { color: new Color4(0, .53, .43, 1), perimeter: false , support : false},
-            'Skirt/Brim': { color: new Color4(0, .53, .43, 1), perimeter: false , support : false},
+            'Skirt': { color: new Color4(0, 0.53, 0.43, 1), perimeter: false , support : false},
+            'Skirt/Brim': { color: new Color4(0, 0.53, 0.43, 1), perimeter: false , support : false},
             'Supported material': { color: new Color4(0, 1, 0, 1), perimeter: false , support : true},
             'Supported material interface': { color: new Color4(0, 0.5, 0, 1), perimeter: false , support : true},
             'Custom': { color: new Color4(0.5, 0.5, 0.5, 1), perimeter: false , support : false},
