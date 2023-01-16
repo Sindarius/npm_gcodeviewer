@@ -2,6 +2,8 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import "@babylonjs/loaders/OBJ/"
 import { JRNozzle } from './models'
+import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
 
 export class CursorType {
 
