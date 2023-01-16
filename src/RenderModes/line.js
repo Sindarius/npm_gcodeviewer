@@ -112,7 +112,7 @@ export default class LineRenderer extends BaseRenderer {
         }
       }
 
-      let startIdx = completed.findIndex(l => l == false);
+      let startIdx = completed.findIndex(l => l === false);
 
       for (let idx = startIdx; idx < renderTo; idx++) {
         let colorIdx = idx * 8;

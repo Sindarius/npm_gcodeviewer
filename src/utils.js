@@ -58,7 +58,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
         let deltaY = y - currY;
 
         let dSquared = Math.pow(deltaX, 2) + Math.pow(deltaY, 2);
-        if (dSquared == 0) {
+        if (dSquared === 0) {
             return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
         }
 
@@ -85,12 +85,12 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
     } else {
         //the radial point is an offset from the current position
         ///Need at least on point 
-        if (i == 0 && j == 0) {
+        if (i === 0 && j === 0) {
             return { position: { x: x, y: y, z: z }, points: [] }; //we'll abort the render and move te position to the new position.
         }
     }
 
-    let wholeCircle = currX == i && currY == y;
+    let wholeCircle = currX === i && currY === y;
     let centerX = currX + i;
     let centerY = currY + j;
 

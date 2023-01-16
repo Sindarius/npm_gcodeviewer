@@ -349,7 +349,7 @@ export default class {
  
     this.setRenderQualitySettings(this.lineCount, renderQuality) 
  
-    if (this.tools.length == 0) { 
+    if (this.tools.length === 0) { 
       this.tools.push(new Tool()) 
     } 
     //set initial color to extruder 0 
@@ -461,9 +461,9 @@ export default class {
                   } 
                   else { 
                     this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1)) 
-                    if(!this.lastY || this.lastY != this.currentPosition.y){ 
+                    if(!this.lastY || this.lastY !== this.currentPosition.y){ 
                       this.lastY  = this.currentPosition.y; 
-                      if(this.lastY == undefined) 
+                      if(this.lastY === undefined) 
                       this.lastY = 0; 
                     } 
                     if (this.currentPosition.y < this.minHeight) { 
@@ -541,14 +541,14 @@ export default class {
               if (this.currentPosition.y > this.currentZ) { 
                 this.currentRowIdx++ 
  
-                if(this.currentRowIdx % 3 == 0){ 
+                if(this.currentRowIdx % 3 === 0){ 
                   this.currentRowIdx++; 
                 } 
  
                 this.currentZ = this.currentPosition.y 
               } 
  
-              if ((this.currentRowIdx % this.everyNthRow == 0) && (this.currentRowIdx > 2))  { 
+              if ((this.currentRowIdx % this.everyNthRow === 0) && (this.currentRowIdx > 2))  { 
                 return 
               } 
             } 
@@ -602,7 +602,7 @@ export default class {
               line.extruding = extruding 
               if (this.debug) { 
                 line.color = cw ? new Color4(0, 1, 1, 1) : new Color4(1, 1, 0, 1) 
-                if (idx == 0) { 
+                if (idx === 0) { 
                   line.color = new Color4(0, 1, 0, 1) 
                 } 
               } 
@@ -636,7 +636,7 @@ export default class {
         case 'G28': 
           //Home 
           tokens = tokenString.split(/(?=[GXYZ])/) 
-          if (tokens.length == 1) { 
+          if (tokens.length === 1) { 
             this.currentPosition = new Vector3(0, 0, 0) 
           } else { 
             if (tokens.some((t) => t.trim() === 'X')) { 

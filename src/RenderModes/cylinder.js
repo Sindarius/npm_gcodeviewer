@@ -109,7 +109,7 @@ export default class CylinderRenderer extends BaseRenderer {
                         completed[idx] = true;
                     }
                     else {
-                        if(transparentValue == 0){
+                        if(transparentValue === 0){
                             this.lostInSpace.copyToArray(matrixData,  matrixIdx);
                         }
                         else{
@@ -161,7 +161,7 @@ export default class CylinderRenderer extends BaseRenderer {
         }
 
 
-        if(lines.length == 0) return;
+        if(lines.length === 0) return;
 
         let minFilePosition = lines[0].gcodeFilePosition
         let maxFilePosition = lines.slice(-1)[0].gcodeFilePosition;

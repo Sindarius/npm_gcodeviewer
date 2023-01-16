@@ -119,7 +119,7 @@ export default class VoxelRenderer extends BaseRenderer {
                     idxY = 0;
                 }
 
-                if (idxY != maxRenderedLayer && tool.isAdditive()) {
+                if (idxY !== maxRenderedLayer && tool.isAdditive()) {
                     maxRenderedLayer = idxY;
                 }
 

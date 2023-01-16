@@ -192,8 +192,8 @@ export default class {
     this.scene.activeCamera.target = new Vector3(bedCenter.x, bedCenter.z, bedCenter.y);
     let target = Vector3.Zero();
     
-    let zeros = (lookVector.x == 0 ? 1 :0) + (lookVector.y == 0 ? 1 : 0) + (lookVector.z == 0 ?  1 : 0);
-    let distance = zeros == 2 ?  1.75 : 1.35;
+    let zeros = (lookVector.x === 0 ? 1 :0) + (lookVector.y === 0 ? 1 : 0) + (lookVector.z === 0 ?  1 : 0);
+    let distance = zeros === 2 ?  1.75 : 1.35;
 
     switch (lookVector.x) {
       case 1:
