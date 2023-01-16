@@ -4,6 +4,7 @@ import "@babylonjs/loaders/OBJ/"
 import { JRNozzle } from './models'
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
+import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 
 export class CursorType {
 
