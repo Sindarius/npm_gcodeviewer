@@ -420,7 +420,7 @@ export default class {
     tokenString = tokenString.toUpperCase() 
     let command = tokenString.match(/[GM]+[0-9.]+/) //|S+ 
  
-    if (command != null) { 
+    if (command !== null) { 
       command = command.filter((c) => c.startsWith('G') || c.startsWith('M')) 
       switch (command[0]) { 
         case 'G0': 
@@ -565,7 +565,7 @@ export default class {
             } 
  
             if (spindleCutting || (lineTolerance && line.extruding)) { 
-              if(this.currentColor == null){ 
+              if(this.currentColor === null){ 
                 this.currentColor = new Color4(1,1,1,1); 
               } 
               line.color = this.currentColor.clone() 
@@ -947,7 +947,7 @@ export default class {
     let color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0) 
     this.specularColor = color 
     this.renderInstances.forEach((r) => { 
-      if(r.material != null && Object.prototype.hasOwnProperty.call(r.material, 'specularColor')){ 
+      if(r.material !== null && Object.prototype.hasOwnProperty.call(r.material, 'specularColor')){ 
         try{ 
         r.material.specularColor = color 
         } 
