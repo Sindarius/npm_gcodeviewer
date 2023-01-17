@@ -19,16 +19,16 @@ export default class {
     this.buildObjectMeshes = new Array();
     this.labels = new Array();
     this.labelSVGS = new Array();
-    this.baseMaterial;
-    this.highlightMaterial;
-    this.cancelledMaterial;
-    this.cancelledHighlightMaterial;
+    this.baseMaterial = null;
+    this.highlightMaterial= null;
+    this.cancelledMaterial= null;
+    this.cancelledHighlightMaterial= null;
     this.showCancelObjects = false;
-    this.objectCallback;
-    this.renderFailedCallback;
-    this.labelCallback;
-    this.registerClipIgnore;
-    this.getMaxHeight;
+    this.objectCallback= null;
+    this.renderFailedCallback= null;
+    this.labelCallback= null;
+    this.registerClipIgnore= null;
+    this.getMaxHeight= null;
     this.alphaLevel = 0.5;
 
     this.observableControls = null;

@@ -8,12 +8,12 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 export default class {
   constructor() {
     this.tool = 0;
-    this.start;
-    this.end;
+    this.start = Vector3.Zero();
+    this.end = Vector3.Zero();;
     this.extruding = false;
     this.gcodeLineNumber = 0;
     this.gcodeFilePosition = 0;
-    this.color;
+    this.color = null;
     this.feedRate = 0;
     this.layerHeight = 0;
   }

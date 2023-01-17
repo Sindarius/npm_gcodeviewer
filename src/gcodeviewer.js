@@ -33,8 +33,8 @@ import { createViewBox, registerViewBoxCallback } from './viewbox';
 export default class {
   constructor(canvas) {
     this.lastLoadKey = 'lastLoadFailed';
-    this.fileData;
-    this.fileDataArray;
+    this.fileData= null;
+    this.fileDataArray= null;
     this.fileSize = 0;
     this.gcodeProcessor = new gcodeProcessor();
     this.maxHeight = 0;
@@ -46,8 +46,8 @@ export default class {
     this.toolVisible = false;
     this.travelVisible = false;
     this.debug = false;
-    this.zTopClipValue;
-    this.zBottomClipValue;
+    this.zTopClipValue= 1000000;
+    this.zBottomClipValue= -1000000;
     this.cancelHitTimer = 0;
     this.pause = false;
     this.hqNozzle = true;
@@ -55,9 +55,9 @@ export default class {
     this.cameraInertia = localStorage.getItem('cameraInertia') === 'true';
 
     //objects
-    this.bed;
-    this.buildObjects;
-    this.axes;
+    this.bed = null;
+    this.buildObjects= null;
+    this.axes= null;
 
     this.renderQuality = Number(localStorage.getItem('renderQuality'));
     if (this.renderQuality === undefined || this.renderQuality === null) {

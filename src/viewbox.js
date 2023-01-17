@@ -73,9 +73,10 @@ function buildEdge(scene, name, edgeVector) {
     box.bakeCurrentTransformIntoVertices();
   }
 
-  position.x = edgeVector.x - Math.sign(edgeVector.x) * 1;
-  position.y = edgeVector.y - Math.sign(edgeVector.y) * 1;
-  position.z = edgeVector.z - Math.sign(edgeVector.z) * 1;
+  //TODOJER: Check this
+  position.x = edgeVector.x - Math.sign(edgeVector.x);
+  position.y = edgeVector.y - Math.sign(edgeVector.y);
+  position.z = edgeVector.z - Math.sign(edgeVector.z);
 
   box.metadata = {
     x: Math.sign(edgeVector.x) * -1,
@@ -96,7 +97,7 @@ export function createViewBox(engine, mainScene, mainCamera) {
   viewBoxScene = new Scene(engine);
   viewBoxScene.autoClear = false;
 
-  var camera2 = new ArcRotateCamera('camera1', (5 * Math.PI) / 8, (5 * Math.PI) / 8, 13, new Vector3(0, 0, 0), viewBoxScene);
+  const camera2 = new ArcRotateCamera('camera1', (5 * Math.PI) / 8, (5 * Math.PI) / 8, 13, new Vector3(0, 0, 0), viewBoxScene);
 
   // Where to display
   camera2.viewport = new Viewport(0.85, 0.85, 0.15, 0.15);
@@ -111,9 +112,9 @@ export function createViewBox(engine, mainScene, mainCamera) {
     camera2.radius = 15;
   };
 
-  var light = new HemisphericLight('light1', new Vector3(0, 1, 0), viewBoxScene);
+  const light = new HemisphericLight('light1', new Vector3(0, 1, 0), viewBoxScene);
   light.intensity = 0.8;
-  var light2 = new HemisphericLight('light2', new Vector3(-1, -0.5, 0), viewBoxScene);
+  const light2 = new HemisphericLight('light2', new Vector3(-1, -0.5, 0), viewBoxScene);
   light2.intensity = 0.8;
 
   /*********************Create Box***************/

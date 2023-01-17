@@ -172,6 +172,7 @@ export default class {
  
  
     this.firmwareRetraction = false; 
+    this.inches = false;
  
   } 
  
@@ -420,6 +421,9 @@ export default class {
     tokenString = tokenString.toUpperCase() 
     let command = tokenString.match(/[GM]+[0-9.]+/) //|S+ 
  
+    //Fix gcode command
+    //command = command[0] + Number(command.substring(1));
+
     if (command !== null) { 
       command = command.filter((c) => c.startsWith('G') || c.startsWith('M')) 
       switch (command[0]) { 
@@ -586,9 +590,9 @@ export default class {
         case 'G3': 
           { 
             tokens = tokenString.split(/(?=[GXYZIJFRE])/) 
-            let extruding = tokenString.indexOf('E') > 0 
+            let extruding = tokenString.indexOf('E') > 0  || this.g1AsExtrusion //Treat as an extrusion in cnc mode
             let cw = tokens.filter((t) => t === 'G2') 
-            let arcResult = doArc(tokens, this.currentPosition, !this.absolute, 1) 
+            let arcResult = doArc(tokens, this.currentPosition, !this.absolute, 0.001) 
             let curPt = this.currentPosition.clone() 
             arcResult.points.forEach((point, idx) => { 
               let line = new gcodeLine() 
@@ -633,6 +637,8 @@ export default class {
         case 'G11': 
           this.firmwareRetraction = false; 
         break; 
+        case 'G20':
+          this.inches = true;
         case 'G28': 
           //Home 
           tokens = tokenString.split(/(?=[GXYZ])/) 

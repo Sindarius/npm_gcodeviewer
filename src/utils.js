@@ -69,7 +69,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
             hDivD = Math.sqrt(hSquared / dSquared);    
         }
         else {
-            if (hSquared < -0.02 * Math.pow(r,2)) {
+            if (hSquared < -0.02 * Math.pow(r, 2)) {
                 console.error("G2/G3: Radius too small")
                  return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
             }
@@ -112,7 +112,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
 
     //let arcSegmentLength = this.; //hard coding this to 1mm segment for now
 
-    let totalSegments = (arcRadius * totalArc) / arcSegLength + 0.8;
+    let totalSegments = (arcRadius * totalArc) / arcSegLength //+ 0.8;
     if (totalSegments < 1) {
         totalSegments = 1;
     }

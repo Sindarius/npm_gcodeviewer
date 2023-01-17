@@ -14,8 +14,8 @@ export default class ToolCursor {
 
     constructor(scene){ 
         this.scene = scene
-        this.toolCursor
-        this.toolCursorMesh
+        this.toolCursor = null
+        this.toolCursorMesh = null
         this.toolCursorVisible = true
     }
 

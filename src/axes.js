@@ -18,8 +18,8 @@ export default class {
 
     this.scene = scene;
     this.registerClipIgnore = () => { };
-    this.axesMesh;
-    this.axesMeshPosition;
+    this.axesMesh = null;
+    this.axesMeshPosition= null;
     this.size = 50;
     this.debug = false;
   }
