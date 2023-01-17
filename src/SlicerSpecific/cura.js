@@ -33,7 +33,7 @@ export default class Cura extends SlicerBase {
                 this.reportMissingFeature(this.feature);
             }
         }
-        return this.featureList['UNKNOWN'];
+        return this.featureList.UNKNOWN.color;
     }
 
     isPerimeter(){

@@ -36,7 +36,7 @@ export default class ideaMaker extends SlicerBase {
                 this.reportMissingFeature(this.feature);
             }
         }
-        return this.featureList['UNKNOWN'].color;
+        return this.featureList.UNKNOWN.color;
     }
 
     isPerimeter(){

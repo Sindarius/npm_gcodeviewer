@@ -48,7 +48,7 @@ export default class PrusaSlicer extends SlicerBase {
                 this.reportMissingFeature(this.feature); 
             } 
         } 
-        return this.featureList['Unknown'].color; 
+        return this.featureList.Unknown.color;
     } 
  
     isPerimeter(){ 
