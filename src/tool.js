@@ -76,7 +76,7 @@ export function GetTool() {
 }
 
 export function SaveTool() {
-    let toolString = JSON.stringify(loadedTools);
+    const toolString = JSON.stringify(loadedTools);
     window.localStorage.setItem('tools', toolString);
 
 }

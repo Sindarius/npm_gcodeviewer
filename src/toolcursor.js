@@ -34,7 +34,7 @@ export default class ToolCursor {
         this.toolCursorMesh.renderingGroupId = 2
         this.registerClipIgnore(this.toolCursorMesh)
     
-        let mat = new StandardMaterial('nozzleMaterial', this.scene)
+        const mat = new StandardMaterial('nozzleMaterial', this.scene)
         this.toolCursorMesh.material = mat;
         mat.diffuseColor = new Color3(1.0, 0.766, 0.336)
     }

@@ -39,7 +39,7 @@ function buildPlane(scene, name, rotationVector) {
 
 function buildCorner(scene, name, cornerVector) {
   var sphere = MeshBuilder.CreateSphere(name, { diameter: 1.1 }, scene);
-  let position = Vector3.Zero();
+  const position = Vector3.Zero();
   position.x = cornerVector.x - Math.sign(cornerVector.x) * 0.25;
   position.y = cornerVector.y - Math.sign(cornerVector.y) * 0.1;
   position.z = cornerVector.z - Math.sign(cornerVector.z) * 0.25;
@@ -66,7 +66,7 @@ function buildEdge(scene, name, edgeVector) {
 
   var box = MeshBuilder.CreateBox(name, { width: 0.35, height: 5.8, depth: 0.35 }, scene);
 
-  let position = Vector3.Zero();
+  const position = Vector3.Zero();
   if (edgeVector.y !== 0) {
     box.rotate(Axis.Z, Math.PI / 2, Space.WORLD);
     if (edgeVector.x !== 0) box.rotate(Axis.Y, Math.PI / 2, Space.WORLD);
@@ -119,7 +119,7 @@ export function createViewBox(engine, mainScene, mainCamera) {
 
   /*********************Create Box***************/
 
-  let x = 3.9;
+  const x = 3.9;
   buildEdge(viewBoxScene, 'FrontLeft', new Vector3(-x, 0, -x));
   buildEdge(viewBoxScene, 'BackLeft', new Vector3(-x, 0, x));
   buildEdge(viewBoxScene, 'BackRight', new Vector3(x, 0, x));
