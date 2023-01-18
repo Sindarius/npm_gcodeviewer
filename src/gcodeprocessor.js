@@ -592,10 +592,10 @@ export default class {
             tokens = tokenString.split(/(?=[GXYZIJFRE])/) 
             let extruding = tokenString.indexOf('E') > 0  || this.g1AsExtrusion //Treat as an extrusion in cnc mode
             let cw = tokens.filter((t) => t === 'G2') 
-            let arcResult = doArc(tokens, this.currentPosition, !this.absolute, 0.001) 
+            const arcResult = doArc(tokens, this.currentPosition, !this.absolute, 1) 
             let curPt = this.currentPosition.clone() 
             arcResult.points.forEach((point, idx) => { 
-              let line = new gcodeLine() 
+              const line = new gcodeLine() 
               line.tool = this.currentTool 
               line.gcodeLineNumber = lineNumber 
               line.gcodeFilePosition = filePosition 
@@ -671,7 +671,7 @@ export default class {
         case 'M3': 
         case 'M4': 
           { 
-            let tokens = tokenString.split(/(?=[SM])/) 
+            const tokens = tokenString.split(/(?=[SM])/) 
             let spindleSpeed = tokens.filter((speed) => speed.startsWith('S')) 
             spindleSpeed = spindleSpeed[0] ? Number(spindleSpeed[0].substring(1)) : 0 
             if (spindleSpeed > 0) { 
@@ -680,10 +680,10 @@ export default class {
           } 
           break 
         case 'M567': { 
-          let tokens = tokenString.split(/(?=[PE])/) 
+          const tokens = tokenString.split(/(?=[PE])/) 
           if (this.colorMode === ColorMode.Feed) break 
           for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) { 
-            let token = tokens[tokenIdx] 
+            const token = tokens[tokenIdx] 
             var finalColors = [1, 1, 1] 
             switch (token[0]) { 
               case 'E': 
@@ -719,7 +719,7 @@ export default class {
       //command is null so we need to check a couple other items. 
       if (tokenString.startsWith('T')) { 
         //Check if we are really looking at a tool change 
-        let newTool = Number.parseInt(tokenString.substring(1)) //Track the current selected tool (Currently used for Voxel Mode) 
+        const newTool = Number.parseInt(tokenString.substring(1)) //Track the current selected tool (Currently used for Voxel Mode) 
  
         if (!isNaN(newTool)) { 
           this.currentPosition.z += 10 //For ASMBL we are going to assume that there is bed movement in a macro for toolchange. (Look into this for other possible sideeffects) 
@@ -755,14 +755,14 @@ export default class {
   } 
  
   renderPointMode(scene) { 
-    let meshIndex = this.lineMeshIndex 
+    const meshIndex = this.lineMeshIndex 
     this.gcodeLineIndex.push(new Array()) 
     //point cloud 
     this.sps = new PointsCloudSystem('pcs' + meshIndex, 1, scene) 
  
-    let l = this.lines 
+    const l = this.lines 
  
-    let particleBuilder = function (particle, i, s) { 
+    const particleBuilder = function (particle, i, s) { 
       l[s].renderParticle(particle) 
     } 
  
@@ -806,9 +806,9 @@ export default class {
   } 
  
   async createTravelLines(scene) { 
-    let chunks = this.chunk(this.travels, 20000) 
+    const chunks = this.chunk(this.travels, 20000) 
     for (let idx = 0; idx < chunks.length; idx++) { 
-      let renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex) 
+      const renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex) 
       renderer.travels = true 
       renderer.meshIndex = this.meshIndex + 1000 
       await renderer.render(chunks[idx]) 
@@ -919,7 +919,7 @@ export default class {
   } 
  
   addTool(color, diameter, toolType = ToolType.Extruder) { 
-    let tool = new Tool() 
+    const tool = new Tool() 
     tool.color = Color4.FromHexString(color.padEnd(9, 'F')) 
     tool.diameter = diameter 
     tool.toolType = toolType 
@@ -950,7 +950,7 @@ export default class {
   } 
  
   useSpecularColor(useSpecular) { 
-    let color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0) 
+    const color = useSpecular ? new Color3(0.4, 0.4, 0.4) : new Color3(0, 0, 0) 
     this.specularColor = color 
     this.renderInstances.forEach((r) => { 
       if(r.material !== null && Object.prototype.hasOwnProperty.call(r.material, 'specularColor')){ 

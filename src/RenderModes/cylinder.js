@@ -163,14 +163,14 @@ export default class CylinderRenderer extends BaseRenderer {
 
         if(lines.length === 0) return;
 
-        let minFilePosition = lines[0].gcodeFilePosition
-        let maxFilePosition = lines.slice(-1)[0].gcodeFilePosition;
+        const minFilePosition = lines[0].gcodeFilePosition
+        const maxFilePosition = lines.slice(-1)[0].gcodeFilePosition;
 
         let lastPosition = 0;
         let scrubbing = false;
 
         let timeStamp = Date.now();
-        let beforeRenderFunc = () => {
+        const beforeRenderFunc = () => {
             if (this.isLoading || Date.now() - timeStamp < 200) return;
             timeStamp = Date.now();
 

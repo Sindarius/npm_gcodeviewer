@@ -36,7 +36,7 @@ export default class Tool {
         else {
             json = JSON.parse(jsonString);
         }
-        let tool = new Tool();
+        const tool = new Tool();
         tool.name = json.name;
         tool.color = new Color4(json.color.r, json.color.g, json.color.b, json.color.a);
         tool.diameter = parseFloat(json.diameter);
@@ -54,18 +54,18 @@ let loadedTools = new Array();
 
 export function GetTool() {
     if (loadedTools.length === 0) {
-        let toolString = window.localStorage.getItem('tools');
+        const toolString = window.localStorage.getItem('tools');
         if (toolString) {
             loadedTools.splice();
-            let toolList = JSON.parse(toolString);
+            const toolList = JSON.parse(toolString);
             toolList.forEach((t) => {
-                let newTool = Tool.fromJson(t);
+                const newTool = Tool.fromJson(t);
                 loadedTools.push(newTool);
             });
 
         } else {
             for (let toolIdx = 0; toolIdx < 10; toolIdx++) {
-                let tool = new Tool();
+                const tool = new Tool();
                 tool.name = 'Tool #' + toolIdx;
                 loadedTools.push(tool);
             }

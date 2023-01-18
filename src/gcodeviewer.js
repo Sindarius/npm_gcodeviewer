@@ -129,7 +129,7 @@ export default class {
     this.bed.registerClipIgnore = (mesh) => {
       this.registerClipIgnore(mesh);
     };
-    var bedCenter = this.bed.getCenter();
+    const bedCenter = this.bed.getCenter();
 
     // Add a camera to the scene and attach it to the canvas
     this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
@@ -185,14 +185,14 @@ export default class {
   }
 
   setCameraPosition(lookVector) {
-    var bedCenter = this.bed.getCenter();
-    var bedSize = this.bed.getSize();
+    const bedCenter = this.bed.getCenter();
+    const bedSize = this.bed.getSize();
     this.scene.activeCamera.radius = bedSize.x * 1.5;
     this.scene.activeCamera.target = new Vector3(bedCenter.x, bedCenter.z, bedCenter.y);
     let target = Vector3.Zero();
     
-    let zeros = (lookVector.x === 0 ? 1 :0) + (lookVector.y === 0 ? 1 : 0) + (lookVector.z === 0 ?  1 : 0);
-    let distance = zeros === 2 ?  1.75 : 1.35;
+    const zeros = (lookVector.x === 0 ? 1 :0) + (lookVector.y === 0 ? 1 : 0) + (lookVector.z === 0 ?  1 : 0);
+    const distance = zeros === 2 ?  1.75 : 1.35;
 
     switch (lookVector.x) {
       case 1:
@@ -253,8 +253,8 @@ export default class {
   }
 
   resetCamera() {
-    var bedCenter = this.bed.getCenter();
-    var bedSize = this.bed.getSize();
+    const bedCenter = this.bed.getCenter();
+    const bedSize = this.bed.getSize();
     if (this.bed.isDelta) {
       this.scene.activeCamera.radius = bedCenter.x;
       this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
@@ -374,7 +374,7 @@ export default class {
     this.gcodeProcessor.unregisterEvents();
 
     for (let idx = this.scene.meshes.length - 1; idx >= 0; idx--) {
-      let sceneEntity = this.scene.meshes[idx];
+      const sceneEntity = this.scene.meshes[idx];
       if (sceneEntity && this.debug) {
         console.log(`Disposing ${sceneEntity.name}`);
       }
@@ -480,7 +480,7 @@ export default class {
     this.toolCursorMesh.renderingGroupId = 2;
     this.registerClipIgnore(this.toolCursorMesh);
 
-    let mat = new StandardMaterial('nozzleMaterial', this.scene);
+    const mat = new StandardMaterial('nozzleMaterial', this.scene);
     this.toolCursorMesh.material = mat;
     mat.diffuseColor = new Color3(1.0, 0.766, 0.336);
   }
@@ -544,8 +544,8 @@ export default class {
 
   getGCodeLine(numLines = 5){
     try{
-      let startIdx = Math.max(0,this.gcodeProcessor.currentLineNumber - numLines);
-      let endIdx = Math.min(this.gcodeProcessor.currentLineNumber, this.fileDataArray.length  - 1);
+      const startIdx = Math.max(0,this.gcodeProcessor.currentLineNumber - numLines);
+      const endIdx = Math.min(this.gcodeProcessor.currentLineNumber, this.fileDataArray.length  - 1);
       return this.fileDataArray.slice(startIdx, endIdx).join('\r\n').trim();
     }
     catch{

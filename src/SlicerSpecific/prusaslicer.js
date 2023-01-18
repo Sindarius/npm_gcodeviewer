@@ -74,12 +74,12 @@ export default class PrusaSlicer extends SlicerBase {
     processComments(file, processor) { 
         try {
             for (let lineIdx = file.length - 350; lineIdx < file.length - 1; lineIdx++) {
-                let line = file[lineIdx];
+                const line = file[lineIdx];
 
                 //Pull out the nozzle diameter for each tool
                 if (line.includes('nozzle_diameter')) {
-                    let equalSign = line.indexOf('=') + 1;
-                    let diameters = line.substring(equalSign).split(',');
+                    const equalSign = line.indexOf('=') + 1;
+                    const diameters = line.substring(equalSign).split(',');
                     for (let toolIdx = 0; toolIdx < diameters.length; toolIdx++) {
                         if (processor.tools.length < toolIdx) {
                             processor.tools[toolIdx].diameter = diameters[toolIdx];

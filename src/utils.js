@@ -191,7 +191,7 @@ export function makeTextPlane(scene, text, color, bgColor, width, height, fontSi
     var blob = new Blob([doctype + source], { type: 'image/svg+xml' });
     var url = window.URL.createObjectURL(blob);
 
-    const plane = MeshBuilder.CreatePlane('TextPlane', { width: width, height: height}, scene);
+    const plane = MeshBuilder.CreatePlane('TextPlane', { width, height}, scene);
     plane.material = new StandardMaterial('TextPlaneMaterial', scene);
     plane.material.backFaceCulling = false;
     plane.material.specularColor = new Color3(0,0,0);
