@@ -62,7 +62,7 @@ export default class {
     this.gcodeFilePosition = 0 
  
     this.refreshTime = 200 
-    this.timeStamp 
+    this.timeStamp = 0
  
     this.lineLengthTolerance = 0.05 
  
@@ -81,7 +81,7 @@ export default class {
  
     //scene data 
     this.lineMeshIndex = 0 
-    this.scene 
+    this.scene  = null
     this.renderFuncs = new Array() 
  
     //Mesh Breaking 
@@ -97,18 +97,18 @@ export default class {
     this.minFeedRate = Number.MAX_VALUE 
     this.underspeedPercent = 1 
  
-    this.colorMode = Number.parseInt(localStorage.getItem('processorColorMode')) 
+    this.colorMode = Number.parseInt(localStorage.getItem('processorColorMode'), 10) 
     if (!this.colorMode) { 
       this.setColorMode(ColorMode.Color) 
     } 
  
-    this.minColorRate = Number.parseInt(localStorage.getItem('minColorRate')) 
+    this.minColorRate = Number.parseInt(localStorage.getItem('minColorRate'), 10) 
     if (!this.minColorRate) { 
       this.minColorRate = 1200 
       localStorage.setItem('minColorRate', this.minColorRate) 
     } 
  
-    this.maxColorRate = Number.parseInt(localStorage.getItem('maxColorRate')) 
+    this.maxColorRate = Number.parseInt(localStorage.getItem('maxColorRate'), 10) 
     if (!this.maxColorRate) { 
       this.maxColorRate = 3600 
       localStorage.setItem('maxColorRate', this.maxColorRate) 
@@ -143,7 +143,7 @@ export default class {
     this.lookAheadLength = 500 
     this.cancelLoad = false 
  
-    this.loadingProgressCallback 
+    this.loadingProgressCallback = () => { }
  
     this.hasSpindle = false 
  
@@ -639,6 +639,7 @@ export default class {
         break; 
         case 'G20':
           this.inches = true;
+        break;
         case 'G28': 
           //Home 
           tokens = tokenString.split(/(?=[GXYZ])/) 
@@ -681,10 +682,11 @@ export default class {
           break 
         case 'M567': { 
           const tokens = tokenString.split(/(?=[PE])/) 
+          let finalColors = [1, 1, 1] 
           if (this.colorMode === ColorMode.Feed) break 
           for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) { 
             const token = tokens[tokenIdx] 
-            var finalColors = [1, 1, 1] 
+            
             switch (token[0]) { 
               case 'E': 
                 this.extruderPercentage = token.substring(1).split(':') 
@@ -719,7 +721,7 @@ export default class {
       //command is null so we need to check a couple other items. 
       if (tokenString.startsWith('T')) { 
         //Check if we are really looking at a tool change 
-        const newTool = Number.parseInt(tokenString.substring(1)) //Track the current selected tool (Currently used for Voxel Mode) 
+        const newTool = Number.parseInt(tokenString.substring(1), 10) //Track the current selected tool (Currently used for Voxel Mode) 
  
         if (!isNaN(newTool)) { 
           this.currentPosition.z += 10 //For ASMBL we are going to assume that there is bed movement in a macro for toolchange. (Look into this for other possible sideeffects) 
@@ -730,11 +732,11 @@ export default class {
             this.currentTool = this.currentTool % this.tools.length //Deal with a lot of manual tool changes 
           } else if (newTool < 0) { 
             this.currentTool = 0 
-            extruder = 0 // Cover the case where someone sets a tool to a -1 value (I believe Prusa use this for MMU pre-print selection) 
           } 
  
           if (this.colorMode !== ColorMode.Feed) { 
             var extruder = Number(tokenString.substring(1)) % this.extruderCount 
+            if (extruder < 0) extruder = 0;
             this.currentColor = this.tools[extruder]?.color?.clone() ?? new Color3(1, 0, 0) 
           } 
         } 
@@ -957,8 +959,8 @@ export default class {
         try{ 
         r.material.specularColor = color 
         } 
-        catch{ 
- 
+        catch(ex){ 
+          console.error(ex)
         } 
       } 
     }) 

@@ -124,9 +124,9 @@ export default class VoxelRenderer extends BaseRenderer {
                 }
 
                 if (tool.toolType === "Extruder") {
-
+                    let point = null;
                     try {
-                        var point = layers[idxY][idxX][idxZ];
+                        point = layers[idxY][idxX][idxZ];
                     }
                     catch (ex) {
                         point = null;
@@ -145,10 +145,7 @@ export default class VoxelRenderer extends BaseRenderer {
                         }
                     }
                     else {
-                        //Find the point
-                        //if (points.length > 0 && points[0].data && !points[0].data.voxelEvents.some(ev => ev.filePosition === voxelEvent.filePosition)) {
                         point.voxelEvents.push(voxelEvent);
-                        //}
                     }
                 }
                 else { //Deal with cutting operation
@@ -174,14 +171,15 @@ export default class VoxelRenderer extends BaseRenderer {
 
                     }
                 }
-            }
-            lines[lineIdx] = null;
 
-            if (lineIdx % 10000 === 0 || (new Date() - lastUpdate > 5000)) {
-                lastUpdate = new Date();
-                this.loadingProgressCallback(lineIdx / lines.length, "Generating Voxel Map...");
-                await pauseProcessing();
+                lines[lineIdx] = null;
+                if (lineIdx % 10000 === 0 || (new Date() - lastUpdate > 5000)) {
+                    lastUpdate = new Date();
+                    this.loadingProgressCallback(lineIdx / lines.length, "Generating Voxel Map...");
+                    await pauseProcessing();
+                }
             }
+
         }
 
         this.loadingProgressCallback(lineIdx / lines.length, "Rendering Voxel...");

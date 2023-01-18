@@ -1,6 +1,11 @@
 import { Color4 } from "@babylonjs/core/Maths/math.color";
 
+export const ToolType = {
+    Extruder: "Extruder",
+    Endmill: "Endmill"
+}
 export default class Tool {
+    
     constructor() {
         this.name = '';
         this.color = new Color4(0, 0, 1, 1);
@@ -45,10 +50,7 @@ export default class Tool {
     }
 }
 
-export const ToolType = {
-    Extruder: "Extruder",
-    Endmill: "Endmill"
-}
+
 
 let loadedTools = new Array();
 

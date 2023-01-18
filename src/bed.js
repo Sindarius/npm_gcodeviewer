@@ -35,7 +35,7 @@ export default class {
       this.buildVolume = JSON.parse(buildVol);
     }
 
-    this.renderMode = Number.parseInt(localStorage.getItem('renderBedMode')); //0 plane 1 cube extents
+    this.renderMode = Number.parseInt(localStorage.getItem('renderBedMode'), 10); //0 plane 1 cube extents
     if (!this.renderMode) {
       this.renderMode = RenderBedMode.bed;
     }

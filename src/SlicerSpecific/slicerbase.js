@@ -8,7 +8,7 @@ export default class SlicerSpecificBase {
     }
 
     isTypeComment(comment) { return false; }
-    getFeatureColor(comment) {new Color4(1, 1, 1, 1) }
+    getFeatureColor(comment) { return new Color4(1, 1, 1, 1) }
     isPerimeter() { return this.perimeter; } // render all
     isSupport() { return this.support; } 
 
