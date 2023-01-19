@@ -320,6 +320,7 @@ export default class {
    g0g1(tokenString, lineNumber, filePosition, renderLine, command) {
       const tokens = tokenString.split(/(?=[GXYZEFUV])/);
       const line = new gcodeLine();
+      let hasXYMove = false;
       line.tool = this.currentTool;
       line.gcodeLineNumber = lineNumber;
       line.gcodeFilePosition = filePosition;
@@ -338,6 +339,7 @@ export default class {
          switch (token[0]) {
             case 'X':
                this.currentPosition.x = this.absolute ? Number(token.substring(1)) : this.currentPosition.x + Number(token.substring(1));
+               hasXYMove = true;
                break;
             case 'Y':
                if (this.zBelt) {
@@ -345,6 +347,7 @@ export default class {
                } else {
                   this.currentPosition.z = this.absolute ? Number(token.substring(1)) : this.currentPosition.z + Number(token.substring(1));
                }
+               hasXYMove = true;
                break;
             case 'Z':
                if (this.zBelt) {
@@ -456,7 +459,7 @@ export default class {
          line.color = this.currentColor.clone();
          this.lines.push(line);
 
-         if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport) {
+         if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport && hasXYMove) {
             this.previousLayerHeight = this.currentLayerHeight;
             this.currentLayerHeight = this.currentPosition.y;
             //this.layerDictionary.push({z : this.currentPosition.y, lineNumber : lineNumber});
