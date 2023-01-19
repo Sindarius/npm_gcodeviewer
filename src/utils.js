@@ -13,7 +13,7 @@ function getNumber(tokenNumber, value, relativeMove) {
     return relativeMove ? number + value : number;
 }
 
-export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
+export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRadius) {
 
     const currX = currentPosition.x,
         currY = currentPosition.z, //BabylonJS Z represents depth so Y and Z are switched
@@ -62,7 +62,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
             return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
         }
 
-        const hSquared = Math.pow(r, 2) - dSquared / 4;
+        let hSquared = Math.pow(r, 2) - dSquared / 4;
         let hDivD = 0
 
         if (hSquared >= 0) {
@@ -70,10 +70,16 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
         }
         else {
             if (hSquared < -0.02 * Math.pow(r, 2)) {
-                console.error("G2/G3: Radius too small")
-                 return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
+                if (fixRadius) {
+                    const minR = Math.sqrt(Math.pow(deltaX / 2, 2) + Math.pow(deltaY / 2, 2));
+                    hSquared = Math.pow(minR, 2) - dSquared / 4;
+                    hDivD = Math.sqrt(hSquared / dSquared);    
+                }
+                else {
+                    console.error("G2/G3: Radius too small")
+                    return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
+                }
             }
-            hDivD = 0;
         }
         
         // Ref RRF DoArcMove for details
