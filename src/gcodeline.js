@@ -43,9 +43,9 @@ export default class {
   }
 
   distanceVector(v1, v2) {
-    let dx = v1.x - v2.x;
-    let dy = v1.y - v2.y;
-    let dz = v1.z - v2.z;
+    let dx = v2.x - v1.x;
+    let dy = v2.y - v1.y;
+    let dz = v2.z - v1.z;
 
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
@@ -81,14 +81,15 @@ export default class {
     let p = {};
     let length = this.distanceVector(this.start, this.end);
     let rot2 = Math.atan2(this.end.z - this.start.z, this.end.x - this.start.x);
+    let rotY =Math.atan2(this.end.y- this.start.y, this.end.x - this.start.x);
 
     let len = length + padding; //add a little extra to each end to smooth out the hard corners a little
 
     p.matrix = Matrix.Compose(
       new Vector3( len, this.layerHeight, nozzleSize),
-      Quaternion.FromEulerAngles(0,-rot2, 0),
+      Quaternion.FromEulerAngles(0,-rot2,Math.sin(rotY)),
       new Vector3(this.start.x + ( len / 2) * Math.cos(rot2),
-       this.start.y, 
+       this.start.y+  (len / 2) * Math.sin(rotY), 
        this.start.z + ( len / 2) * Math.sin(rot2)));
     p.color = this.color;
     p.props = {
