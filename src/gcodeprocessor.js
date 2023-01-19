@@ -510,6 +510,27 @@ export default class {
       }
    }
 
+   //This is used to drive material mixing visualization
+   m567(tokenString) {
+      const tokens = tokenString.split(/(?=[PE])/);
+      let finalColors = [1, 1, 1];
+      if (this.colorMode === ColorMode.Feed) return;
+      for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
+         const token = tokens[tokenIdx];
+         switch (token[0]) {
+            case 'E':
+               this.extruderPercentage = token.substring(1).split(':');
+               break;
+         }
+      }
+      for (let extruderIdx = 0; extruderIdx < this.extruderPercentage.length; extruderIdx++) {
+         finalColors[0] -= (1 - this.tools[extruderIdx].color.r) * this.extruderPercentage[extruderIdx];
+         finalColors[1] -= (1 - this.tools[extruderIdx].color.g) * this.extruderPercentage[extruderIdx];
+         finalColors[2] -= (1 - this.tools[extruderIdx].color.b) * this.extruderPercentage[extruderIdx];
+      }
+      this.currentColor = new Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
+   }
+
    async processGcodeFile(file, renderQuality, clearCache) {
       this.initVariables();
       this.slicer = SlicerFactory.getSlicer(file);
@@ -624,11 +645,11 @@ export default class {
          switch (command[0]) {
             case 'G0':
             case 'G1':
-                  this.g0g1(tokenString, lineNumber, filePosition, renderLine, command);
+               this.g0g1(tokenString, lineNumber, filePosition, renderLine, command);
                break;
             case 'G2':
             case 'G3':
-                  this.g2g3(tokenString, lineNumber, filePosition, renderLine);
+               this.g2g3(tokenString, lineNumber, filePosition, renderLine);
                break;
             case 'G10':
                this.firmwareRetraction = true;
@@ -680,24 +701,7 @@ export default class {
                }
                break;
             case 'M567': {
-               const tokens = tokenString.split(/(?=[PE])/);
-               let finalColors = [1, 1, 1];
-               if (this.colorMode === ColorMode.Feed) break;
-               for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
-                  const token = tokens[tokenIdx];
-
-                  switch (token[0]) {
-                     case 'E':
-                        this.extruderPercentage = token.substring(1).split(':');
-                        break;
-                  }
-               }
-               for (let extruderIdx = 0; extruderIdx < this.extruderPercentage.length; extruderIdx++) {
-                  finalColors[0] -= (1 - this.tools[extruderIdx].color.r) * this.extruderPercentage[extruderIdx];
-                  finalColors[1] -= (1 - this.tools[extruderIdx].color.g) * this.extruderPercentage[extruderIdx];
-                  finalColors[2] -= (1 - this.tools[extruderIdx].color.b) * this.extruderPercentage[extruderIdx];
-               }
-               this.currentColor = new Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
+               this.m567(tokenString);
                break;
             }
             case 'M600':
