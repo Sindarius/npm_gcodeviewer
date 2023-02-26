@@ -96,7 +96,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRa
         }
     }
 
-    const wholeCircle = currX === i && currY === y;
+    const wholeCircle = currX === x && currY === y;
     const centerX = currX + i;
     const centerY = currY + j;
 
