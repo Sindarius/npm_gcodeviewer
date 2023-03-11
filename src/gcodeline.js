@@ -79,18 +79,18 @@ export default class {
   renderLinev4(nozzleSize = 0.4, padding = 0){
     if(this.layerHeight === 0) {this.layerHeight = this.start.y; }
     let p = {};
-    let length = this.distanceVector(this.start, this.end);
-    let rot2 = Math.atan2(this.end.z - this.start.z, this.end.x - this.start.x);
-    let rotY =Math.atan2(this.end.y- this.start.y, this.end.x - this.start.x);
+    let length = this.distanceVector(this.start, this.end) + padding;
+    let midPoint = this.start.add(this.end).divide(new Vector3(2,2,2));
 
-    let len = length + padding; //add a little extra to each end to smooth out the hard corners a little
+    let v = this.end.subtract(this.start);
+    let r = Math.sqrt(Math.pow(v.x, 2) + Math.pow(v.y, 2) + Math.pow(v.z, 2));
+    let phi = Math.atan2(v.z, v.x);
+    let theta = Math.acos(v.y / r);
 
-    p.matrix = Matrix.Compose(
-      new Vector3( len, this.layerHeight, nozzleSize),
-      Quaternion.FromEulerAngles(0,-rot2,Math.sin(rotY)),
-      new Vector3(this.start.x + ( len / 2) * Math.cos(rot2),
-       this.start.y+  (len / 2) * Math.sin(rotY), 
-       this.start.z + ( len / 2) * Math.sin(rot2)));
+      p.matrix = Matrix.Compose(
+      new Vector3(length, this.layerHeight, nozzleSize),
+      Quaternion.FromEulerVector(new Vector3(0, -phi, Math.PI / 2 - theta)),
+      midPoint);
     p.color = this.color;
     p.props = {
       gcodeLineNumber: this.gcodeLineNumber,
