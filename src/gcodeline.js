@@ -2,9 +2,11 @@
 
 import { Color4 } from '@babylonjs/core/Maths/math.color'
 import { Quaternion, Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 
+
+const PIOVER2 = Math.PI / 2;
+const VECDIV2 = new Vector3(2, 2, 2);
 export default class {
   constructor() {
     this.tool = 0;
@@ -19,7 +21,7 @@ export default class {
   }
 
   length() {
-    return this.distanceVector(this.start, this.end);
+    return Vector3.Distance(this.start, this.end);
   }
 
   renderLine(scene) {
@@ -30,57 +32,13 @@ export default class {
     lineMesh.edgesColor = new Color4(1, 1, 0, 1);
   }
 
-  renderLineV2() {
-    var tube = MeshBuilder.CreateTube('tube', {
-      path: [this.start, this.end],
-      radius: 0.2,
-      tesselation: 4,
-      sideOrientation: Mesh.FRONTSIDE,
-      updatable: false,
-    });
-    tube.doNotSyncBoundingInfo = true;
-    return tube;
-  }
-
-  distanceVector(v1, v2) {
-    let dx = v2.x - v1.x;
-    let dy = v2.y - v1.y;
-    let dz = v2.z - v1.z;
-
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  }
-
-  renderLineV3(p, invisible) {
-    let length = this.distanceVector(this.start, this.end);
-    let rot2 = Math.atan2(this.end.z - this.start.z, this.end.x - this.start.x);
-    p.scaling.x = length;
-    p.scaling.y = this.layerHeight;
-    p.scaling.z = this.layerHeight * 2;
-    p.rotation.y = -rot2;
-
-    p.position.x = this.start.x + (length / 2) * Math.cos(rot2);
-    p.position.y = this.start.y;
-    p.position.z = this.start.z + (length / 2) * Math.sin(rot2);
-    p.color = this.color;
-    if (invisible) {
-      p.materialIndex = 1;
-    } else {
-      p.materialIndex = 0;
-    }
-
-    p.props = {
-      gcodeLineNumber: this.gcodeLineNumber,
-      gcodeFilePosition: this.gcodeFilePosition,
-      originalColor: this.color,
-    };
-  }
-
-
+  //This method is used to calculate the matrix used to visualize with meshes like cube and cylinder
   renderLinev4(nozzleSize = 0.4, padding = 0){
     if(this.layerHeight === 0) {this.layerHeight = this.start.y; }
     let p = {};
-    let length = this.distanceVector(this.start, this.end) + padding;
-    let midPoint = this.start.add(this.end).divide(new Vector3(2,2,2));
+    
+    let length = this.length() + padding;
+    let midPoint = this.start.add(this.end).divide(VECDIV2);
 
     let v = this.end.subtract(this.start);
     let r = Math.sqrt(Math.pow(v.x, 2) + Math.pow(v.y, 2) + Math.pow(v.z, 2));
@@ -89,7 +47,7 @@ export default class {
 
       p.matrix = Matrix.Compose(
       new Vector3(length, this.layerHeight, nozzleSize),
-      Quaternion.FromEulerVector(new Vector3(0, -phi, Math.PI / 2 - theta)),
+      Quaternion.FromEulerVector(new Vector3(0, -phi, PIOVER2 - theta)),
       midPoint);
     p.color = this.color;
     p.props = {
@@ -125,7 +83,7 @@ export default class {
   //X Z =  X Y printer space
   getVoxelSegments(voxelSize, voxelHeight, toolRadius = 0, additive) {
     let pointArray = new Array();
-    let distance = this.distanceVector(this.start, this.end);
+    let distance = Vector3.Distance(this.start, this.end);
     if (distance < 0.1) return;
     let segments = Math.round(((distance / (voxelSize / 2)) - 1) * 100) / 100;
 
