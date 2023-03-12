@@ -165,9 +165,12 @@ export default class {
 
       // Work in progress
       this.zBelt = false;
-      this.hyp = 1 / Math.cos(((90 - 35) / 180) * Math.PI);
-      this.adj = Math.tan(((90 - 35) / 180) * Math.PI);
+      this.gantryAngle =(90 - 35) * Math.PI / 180;
+      this.hyp = Math.cos(this.gantryAngle); 
+      this.adj = Math.tan(this.gantryAngle);
       this.currentOffset = 0;
+      this.yOffset = 0;
+      this.currentZ = 0;
       this.nozzlePosition = new Vector3(0, 0, 0);
 
       this.firmwareRetraction = false;
@@ -317,33 +320,51 @@ export default class {
       this.renderedLines = [];
    }
 
+
+
+   
    g0g1(tokenString, lineNumber, filePosition, renderLine, command) {
-      const tokens = tokenString.split(/(?=[GXYZEFUV])/);
+      let tokens = tokenString.split(/(?=[GXYZEFUV])/);
       const line = new gcodeLine();
       let hasXYMove = false;
       line.tool = this.currentTool;
       line.gcodeLineNumber = lineNumber;
       line.gcodeFilePosition = filePosition;
       line.start = this.currentPosition.clone();
-      line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
-      //Override and treat all G1s as extrusion/cutting moves. Support ASMBL Code -- Disabled -- PrusaSlicer appears to only be writing G1 atm
-      //((!this.tools[this.currentTool]?.isAdditive() ?? true))||
-      if (command[0] === 'G1' && this.g1AsExtrusion) {
+      if (this.zBelt) {
+         line.layerHeight = Math.abs(this.currentLayerHeight - this.previousLayerHeight);
+      }
+      else {
+         line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+      }
+
+      if ((command[0] === 'G1' || command[0] === 'G01') && this.g1AsExtrusion) {
          line.extruding = true;
          line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone();
          this.maxHeight = this.currentPosition.y; //trying to get the max height of the model.
       }
 
-      for (let tokenIdx = 1; tokenIdx < tokens.length; tokenIdx++) {
+      if (this.zBelt) { 
+         tokens = tokens.sort().reverse()
+      }
+      
+      for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
          let token = tokens[tokenIdx];
          switch (token[0]) {
             case 'X':
-               this.currentPosition.x = this.absolute ? Number(token.substring(1)) : this.currentPosition.x + Number(token.substring(1));
+               if (this.zBelt) {
+                  this.currentPosition.x = Number(token.substring(1));
+               }
+               else {
+                  this.currentPosition.x = this.absolute ? Number(token.substring(1)) : this.currentPosition.x + Number(token.substring(1));
+               }
                hasXYMove = true;
                break;
             case 'Y':
                if (this.zBelt) {
-                  this.currentPosition.z = Number(token.substring(1)) + Number(token.substring(1)) * Math.cos((35 * Math.PI) / 180);
+                  this.currentPosition.y = Number(token.substring(1)) * this.hyp;
+                  this.currentPosition.z = this.currentZ + (this.currentPosition.y * this.adj );
+                  
                } else {
                   this.currentPosition.z = this.absolute ? Number(token.substring(1)) : this.currentPosition.z + Number(token.substring(1));
                }
@@ -351,7 +372,9 @@ export default class {
                break;
             case 'Z':
                if (this.zBelt) {
-                  this.currentPosition.y = Number(token.substring(1) + Number(token.substring(1)) * Math.sin((35 * Math.PI) / 180));
+                  this.currentZ = -Number(token.substring(1));
+                  this.currentPosition.z = this.currentZ + (this.currentPosition.y * this.adj );
+                  hasXYMove = true;
                } else {
                   this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1));
                   if (!this.lastY || this.lastY !== this.currentPosition.y) {
@@ -394,17 +417,6 @@ export default class {
                }
 
                break;
-         }
-      }
-
-      if (this.zBelt) {
-         try {
-            if (this.currentOffset === 0) {
-               this.currentOffset = 0.2 * this.adj; //hardcoded for now
-            }
-            let y_offset = this.currentPosition.y * this.adj - this.currentOffset;
-         } catch (e) {
-            console.log(e);
          }
       }
 
@@ -459,10 +471,13 @@ export default class {
          line.color = this.currentColor.clone();
          this.lines.push(line);
 
-         if (this.currentPosition.y > this.currentLayerHeight && !this.isSupport && hasXYMove) {
+         if (this.zBelt && this.currentZ < this.currentLayerHeight && !this.isSupport) {
+            this.previousLayerHeight = this.currentLayerHeight
+            this.currentLayerHeight = this.currentZ;
+         }
+         else if (!this.zBelt && this.currentPosition.y > this.currentLayerHeight && !this.isSupport && hasXYMove) {
             this.previousLayerHeight = this.currentLayerHeight;
             this.currentLayerHeight = this.currentPosition.y;
-            //this.layerDictionary.push({z : this.currentPosition.y, lineNumber : lineNumber});
          }
       } else if (this.renderTravels && !line.extruding) {
          line.color = new Color4(1, 0, 0, 1);
@@ -473,7 +488,7 @@ export default class {
    g2g3(tokenString, lineNumber, filePosition, renderLine) {
       let tokens = tokenString.split(/(?=[GXYZIJFRE])/);
       let extruding = tokenString.indexOf('E') > 0 || this.g1AsExtrusion; //Treat as an extrusion in cnc mode
-      let cw = tokens.filter((t) => t === 'G2');
+      let cw = tokens.filter((t) => t === 'G2' || t === 'G02');
       const arcResult = doArc(tokens, this.currentPosition, !this.absolute, 1, this.fixRadius);
       let curPt = this.currentPosition.clone();
       arcResult.points.forEach((point, idx) => {
@@ -640,6 +655,8 @@ export default class {
       tokenString = tokenString.toUpperCase();
       let command = tokenString.match(/[GM]+[0-9.]+/); //|S+
 
+      
+
       //Fix gcode command
       //command = command[0] + Number(command.substring(1));
 
@@ -648,10 +665,14 @@ export default class {
          switch (command[0]) {
             case 'G0':
             case 'G1':
+            case 'G00':
+            case 'G01':
                this.g0g1(tokenString, lineNumber, filePosition, renderLine, command);
                break;
             case 'G2':
             case 'G3':
+            case 'G02':
+            case 'G03':
                this.g2g3(tokenString, lineNumber, filePosition, renderLine);
                break;
             case 'G10':
@@ -782,6 +803,13 @@ export default class {
    }
 
    async createMesh(scene) {
+
+         //Do a z belt fix for layer heights - so far they appear fixed but some values can be off on initial extrusions
+         if (this.zBelt) {
+            let minlh = this.lines[this.lines.length - 1].layerHeight;
+            this.lines.forEach((l) => { l.layerHeight =  minlh });
+         }
+
       let renderer;
       if (this.renderVersion === RenderMode.Line || this.renderVersion === RenderMode.Point) {
          renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
@@ -804,7 +832,7 @@ export default class {
       await renderer.render(this.lines);
       this.lines = [];
 
-      this.scene.render();
+      //this.scene.render();
    }
 
    chunk(arr, chunkSize) {
