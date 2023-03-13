@@ -165,7 +165,7 @@ export default class {
 
       // Work in progress
       this.zBelt = false;
-      this.gantryAngle =(90 - 35) * Math.PI / 180;
+      this.gantryAngle =(90 - 45) * Math.PI / 180;
       this.hyp = Math.cos(this.gantryAngle); 
       this.adj = Math.tan(this.gantryAngle);
       this.currentOffset = 0;
@@ -1012,4 +1012,11 @@ export default class {
       this.cancelLoad = true;
       await this.pauseProcessing();
    }
+
+   setZBeltAngle(angle) {
+      this.gantryAngle = (90 - angle) * Math.PI / 180;
+      this.hyp = Math.cos(this.gantryAngle);
+      this.adj = Math.tan(this.gantryAngle);
+   }
+
 }

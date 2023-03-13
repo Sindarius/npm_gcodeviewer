@@ -467,7 +467,12 @@ export default class {
     if(this.hqNozzle){
       this.toolCursorMesh = this.scene.getMeshByName('JRNozzle');
       this.toolCursorMesh.parent = this.toolCursor;
-      this.toolCursorMesh.rotate(Axis.X, Math.PI / 2, Space.LOCAL);
+      if (this.gcodeProcessor.zBelt) {
+        this.toolCursorMesh.rotate(Axis.X, Math.PI / 2 - (45 * Math.PI / 180), Space.LOCAL);
+      }
+      else {
+        this.toolCursorMesh.rotate(Axis.X, Math.PI / 2 - (Math.PI / 180), Space.LOCAL);
+      }
       this.toolCursorMesh.rotate(Axis.Y, Math.PI, Space.LOCAL);
       this.toolCursorMesh.rotate(Axis.Z, Math.PI, Space.LOCAL);
       this.toolCursorMesh.scaling = new Vector3(-1, 1, 1);
@@ -563,6 +568,14 @@ export default class {
 
   simulateToolPosition(){
     this.updateToolPosition(this.gcodeProcessor.nozzlePosition);
+  }
+
+  setZBelt(enabled, angle) {
+    this.gcodeProcessor.zBelt = enabled;
+    if (enabled) {
+      this.gcodeProcessor.setZBeltAngle(angle);
+      this.toolCursorMesh.rotate(Axis.X, Math.PI / 2 - (angle * Math.PI/180), Space.LOCAL);      
+    }
   }
 
 }
