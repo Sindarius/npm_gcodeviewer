@@ -230,6 +230,8 @@ export default class {
         break;
     }
 
+    
+
     if (lookVector.x === 0 && lookVector.z === 0) {
       this.scene.activeCamera.target = new Vector3(bedCenter.x, 0, bedCenter.y);      
       this.scene.activeCamera.position = target;
@@ -326,6 +328,14 @@ export default class {
     this.minHeight = this.gcodeProcessor.getMinHeight();
     this.toggleTravels(this.travelVisible);
     this.setCursorVisiblity(this.toolCursorVisible);
+
+    if (this.gcodeProcessor.zBelt) {
+      this.bed.buildVolume.y.min = this.gcodeProcessor.beltLength;
+      this.bed.buildVolume.y.max = 0;
+      this.bed.dispose();
+      this.bed.buildBed();
+    }
+
   }
 
   toggleTravels(visible) {

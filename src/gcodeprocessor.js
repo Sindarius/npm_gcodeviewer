@@ -168,11 +168,11 @@ export default class {
       this.gantryAngle =(90 - 45) * Math.PI / 180;
       this.hyp = Math.cos(this.gantryAngle); 
       this.adj = Math.tan(this.gantryAngle);
-      this.currentOffset = 0;
-      this.yOffset = 0;
       this.currentZ = 0;
-      this.nozzlePosition = new Vector3(0, 0, 0);
+      this.beltLength = 100;
 
+
+      this.nozzlePosition = new Vector3(0, 0, 0);
       this.firmwareRetraction = false;
       this.inches = false;
       this.fixRadius = false;
@@ -318,6 +318,7 @@ export default class {
       this.lastGCodeByte = 0;
       this.layerDictionary = [];
       this.renderedLines = [];
+      this.beltLength = 0;
    }
 
 
@@ -373,7 +374,7 @@ export default class {
             case 'Z':
                if (this.zBelt) {
                   this.currentZ = -Number(token.substring(1));
-                  this.currentPosition.z = this.currentZ + (this.currentPosition.y * this.adj );
+                  this.currentPosition.z = this.currentZ + (this.currentPosition.y * this.adj);
                   hasXYMove = true;
                } else {
                   this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1));
@@ -419,6 +420,11 @@ export default class {
                break;
          }
       }
+
+      if (this.zBelt) { 
+         this.beltLength = this.currentPosition.z < this.beltLength ? this.currentPosition.z : this.beltLength;
+      }
+
 
       if (line.extruding && this.skip) {
          return;
