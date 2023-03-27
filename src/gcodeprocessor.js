@@ -176,6 +176,15 @@ export default class {
       this.firmwareRetraction = false;
       this.inches = false;
       this.fixRadius = false;
+
+      this.csysContainers = new Array();
+
+      this.lastCommand = 'G0';
+      
+      this.arcPlane = "XY"
+
+      
+
    }
 
    doUpdate() {
@@ -319,6 +328,7 @@ export default class {
       this.layerDictionary = [];
       this.renderedLines = [];
       this.beltLength = 0;
+      this.lastCommand = 'G0';
    }
 
 
@@ -470,6 +480,8 @@ export default class {
          return;
       }
 
+      this.renderedLines.push(line);
+
       if (spindleCutting || (lineTolerance && line.extruding)) {
          if (this.currentColor === null) {
             this.currentColor = new Color4(1, 1, 1, 1);
@@ -492,10 +504,16 @@ export default class {
    }
 
    g2g3(tokenString, lineNumber, filePosition, renderLine) {
-      let tokens = tokenString.split(/(?=[GXYZIJFRE])/);
+      let tokens = tokenString.split(/(?=[GXYZIJKFRE])/);
       let extruding = tokenString.indexOf('E') > 0 || this.g1AsExtrusion; //Treat as an extrusion in cnc mode
       let cw = tokens.filter((t) => t === 'G2' || t === 'G02');
-      const arcResult = doArc(tokens, this.currentPosition, !this.absolute, 1, this.fixRadius);
+      let arcResult = {position: this.currentPosition, points: []};
+      try {
+         arcResult = doArc(tokens, this.currentPosition, !this.absolute, 0.1, this.fixRadius, this.arcPlane);
+      }
+      catch (ex) {
+         console.error(`Arc Error`, ex);
+      }
       let curPt = this.currentPosition.clone();
       arcResult.points.forEach((point, idx) => {
          const line = new gcodeLine();
@@ -522,6 +540,7 @@ export default class {
             return;
          }
 
+         this.renderedLines.push(line);
          this.lines.push(line);
       });
 
@@ -659,21 +678,30 @@ export default class {
       let tokens;
 
       tokenString = tokenString.toUpperCase();
-      let command = tokenString.match(/[GM]+[0-9.]+/); //|S+
+      let commands = tokenString.match(/[GM]+[0-9.]+/g); //|S+
+
+      if (commands === null) {
+         let hasMove = tokenString.match(/[XYZ+[0-9.]+/);
+         if (hasMove !== null) { 
+            commands = this.lastCommand;
+         }
+      }
 
       
 
       //Fix gcode command
       //command = command[0] + Number(command.substring(1));
 
-      if (command !== null) {
-         command = command.filter((c) => c.startsWith('G') || c.startsWith('M'));
-         switch (command[0]) {
+      if (commands !== null) {
+         //commands = commands.filter((c) => c.startsWith('G') || c.startsWith('M')); //this is probably not necessary because the match above should only return G or M commands
+         for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) { 
+            //console.log(`index ${commandIndex} command ${commands[commandIndex]}`);
+         switch (commands[commandIndex]) {
             case 'G0':
             case 'G1':
             case 'G00':
             case 'G01':
-               this.g0g1(tokenString, lineNumber, filePosition, renderLine, command);
+               this.g0g1(tokenString, lineNumber, filePosition, renderLine, commands);
                break;
             case 'G2':
             case 'G3':
@@ -687,6 +715,9 @@ export default class {
             case 'G11':
                this.firmwareRetraction = false;
                break;
+            case 'G17': this.arcPlane = "XY";  break;
+            case 'G18': this.arcPlane = "XZ"; break;
+            case 'G19': this.arcPlane = "YZ"; break;
             case 'G20':
                this.inches = true;
                break;
@@ -706,6 +737,9 @@ export default class {
                      this.currentPosition.y = 0;
                   }
                }
+               break;
+            case 'G53':
+               //Machine movement - need to think through this one.
                break;
             case 'G90':
                this.absolute = true;
@@ -749,6 +783,8 @@ export default class {
                   }
                }
                break;
+         }
+            this.lastCommand = commands;
          }
       } else {
          //command is null so we need to check a couple other items.
@@ -832,9 +868,10 @@ export default class {
       renderer.vertexAlpha = this.vertexAlpha;
       this.renderInstances.push(renderer);
 
-      for (let idx = 0; idx < this.lines.length; idx++) {
-         this.renderedLines.push(this.lines[idx]);
-      }
+      // for (let idx = 0; idx < this.lines.length; idx++) {
+      //    this.renderedLines.push(this.lines[idx]);
+      // }
+
       await renderer.render(this.lines);
       this.lines = [];
 
