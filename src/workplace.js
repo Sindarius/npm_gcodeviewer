@@ -8,10 +8,11 @@ import { Color3 } from '@babylonjs/core/Maths/math.color'
 export default class Workplace {
     constructor(scene) {
         //True for now while we start testing
-        this.visible = true; // localStorage.getItem('workplaceVisible');
+        this.visible = true; 
         this.scene = scene;
         this.workplacePoints = [];
         this.workplaceMeshes = [];
+        this.registerClipIgnore = () => { };
     }
 
     setOffsets(points) {
@@ -43,20 +44,22 @@ export default class Workplace {
         }
 
         if (this.visible) {
-            //this.workplacePoints.forEach((point) => {
             for (let idx = 0; idx < this.workplacePoints.length; idx++) {
                 const point = this.workplacePoints[idx];
                 if (!Vector3.ZeroReadOnly.equals(point)) {
-
                     const textMesh = this.makeTextPlane(idx + 1, "white", 5);
-                    textMesh.position = new Vector3(point.x + 2.5, point.z + 4, point.y);
+                    textMesh.position = new Vector3(point.x +1, point.z + 2, point.y);
                     textMesh.billboardMode = 7
+                    textMesh.isVisible = true;
+                    textMesh.renderingGroupId = 2;
+                    this.registerClipIgnore(textMesh);
                     this.workplaceMeshes.push(textMesh);
-
 
                     const mesh = MeshBuilder.CreateBox("box", { size: 1 }, this.scene);
                     mesh.renderingGroupId = 2
                     mesh.position = new Vector3(point.x, point.z, point.y);
+                    mesh.isVisible = true;
+                    this.registerClipIgnore(mesh);
                     this.workplaceMeshes.push(mesh);
                 }
             }

@@ -175,6 +175,9 @@ export default class {
     
 
     this.workplace = new Workplace(this.scene);
+    this.workplace.registerClipIgnore = (mesh) => {
+      this.registerClipIgnore(mesh);
+    };
     this.workplace.setOffsets(this.gcodeProcessor.workplaceOffsets);
     this.workplace.render();
     
@@ -422,6 +425,7 @@ export default class {
     this.buildtoolCursor();
     this.bed.buildBed();
     this.axes.render();
+    console.log('workplace render')
     this.workplace.render();
   }
   async reload() {
@@ -602,6 +606,7 @@ export default class {
     this.workplace.visible = visible;
     this.workplace.setOffsets(this.gcodeProcessor.workplaceOffsets);
     this.workplace.render();
+    this.scene.render();
   }
 
 }
