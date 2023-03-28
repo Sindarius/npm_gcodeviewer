@@ -351,7 +351,7 @@ export default class VoxelRenderer extends BaseRenderer {
                 }
                 timeStamp = Date.now();
                 //Deal with time scrubbing
-                if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || firstPass || this.forceRedraw) {
+                if (this.doScrub(lastPosition, minFilePosition, maxFilePosition) || firstPass || this.forceRedraw) {
                     currentEventIndex = 0;
                     scrubbing = true;
                     this.forceRedraw = false;

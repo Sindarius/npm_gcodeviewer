@@ -29,6 +29,7 @@ import Bed from './bed.js';
 import BuildObjects from './buildobjects.js';
 import Axes from './axes.js';
 import { createViewBox, registerViewBoxCallback } from './viewbox';
+import Workplace from './workplace.js';
 
 export default class {
   constructor(canvas) {
@@ -57,7 +58,8 @@ export default class {
     //objects
     this.bed = null;
     this.buildObjects= null;
-    this.axes= null;
+    this.axes = null;
+    this.workplace = null;
 
     this.renderQuality = Number(localStorage.getItem('renderQuality'));
     if (this.renderQuality === undefined || this.renderQuality === null) {
@@ -170,6 +172,12 @@ export default class {
       this.registerClipIgnore(mesh);
     };
     this.axes.render();
+    
+
+    this.workplace = new Workplace(this.scene);
+    this.workplace.setOffsets(this.gcodeProcessor.workplaceOffsets);
+    this.workplace.render();
+    
 
     this.resetCamera();
 
@@ -414,6 +422,7 @@ export default class {
     this.buildtoolCursor();
     this.bed.buildBed();
     this.axes.render();
+    this.workplace.render();
   }
   async reload() {
     this.clearScene();
@@ -497,6 +506,7 @@ export default class {
 
     const mat = new StandardMaterial('nozzleMaterial', this.scene);
     this.toolCursorMesh.material = mat;
+    //this.toolCursorMesh.material.alpha = 0.8;
     mat.diffuseColor = new Color3(1.0, 0.766, 0.336);
   }
   updateRenderQuality(renderQuality) {
@@ -586,6 +596,11 @@ export default class {
       this.gcodeProcessor.setZBeltAngle(angle);
       this.toolCursorMesh.rotate(Axis.X, Math.PI / 2 - (angle * Math.PI/180), Space.LOCAL);      
     }
+  }
+
+  setWorkplaceVisiblity(visible) {
+    this.workplace.visible = visible
+    this.workplace.render();
   }
 
 }

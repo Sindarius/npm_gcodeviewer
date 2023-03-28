@@ -166,7 +166,7 @@ export default class BlockTIRenderer extends BaseRenderer {
             if (this.isLoading || Date.now() - timeStamp < 200) return;
             timeStamp = Date.now();
 
-            if ((Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance) || this.forceRedraw) {
+            if (this.doScrub(lastPosition, minFilePosition, maxFilePosition)|| this.forceRedraw) {
                 scrubbing = true;
                 this.forceRedraw = false;
                 lastPosition = 0;

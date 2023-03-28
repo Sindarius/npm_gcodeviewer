@@ -8,13 +8,13 @@ import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture'
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 
-function getNumber(tokenNumber, value, relativeMove) {
+function getNumber(tokenNumber, value, relativeMove, offset) {
     let number = Number(tokenNumber.substring(1));
     number = !number ? 0 : number;
-    return relativeMove ? number + value : number;
+    return relativeMove ? number + value : number + offset;
 }
 
-export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRadius, arcPlane) {
+export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRadius, arcPlane, offset) {
     
     let current = new Vector3(currentPosition.x, currentPosition.z, currentPosition.y);
     let move = current.clone();
@@ -28,25 +28,25 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRa
         const token = tokens[tokenIdx];
         switch (token[0]) {
             case 'X': {
-                move.x = getNumber(token, move.x, relativeMove);
+                move.x = getNumber(token, move.x, relativeMove, offset.x);
             } break;
             case 'Y': {
-                move.y = getNumber(token, move.y, relativeMove);
+                move.y = getNumber(token, move.y, relativeMove,  offset.y);
             } break;
             case 'Z': {
-                move.z = getNumber(token, move.z, relativeMove);
+                move.z = getNumber(token, move.z, relativeMove, offset.z);
             } break;
             case 'I': {
-                i = getNumber(token, i, false);
+                i = getNumber(token, i, false, 0);
             } break; // x offset from current position
             case 'J': {
-                j = getNumber(token, j, false);
+                j = getNumber(token, j, false, 0);
             } break; //y offset from current position
             case 'K': { 
-                j = getNumber(token, j, false);
+                j = getNumber(token, j, false, 0);
             } break;
             case 'R': {
-                r = getNumber(token, r, false);
+                r = getNumber(token, r, false, 0);
             } break;
         }
     }
@@ -140,7 +140,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRa
         }
     }
 
-    let totalSegments = (arcRadius * totalArc) / arcSegLength //+ 0.8;
+    let totalSegments = (arcRadius * totalArc) / arcSegLength
     if (totalSegments < 1) {
         totalSegments = 1;
     }
@@ -152,6 +152,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRa
 
     const axis2Dist = current[axis2] - move[axis2];
     const axis2Step = axis2Dist / totalSegments;
+
 
     //get points for the arc
     let p0 = current[axis0];

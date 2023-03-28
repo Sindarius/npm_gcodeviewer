@@ -165,12 +165,11 @@ export default class {
 
       // Work in progress
       this.zBelt = false;
-      this.gantryAngle =(90 - 45) * Math.PI / 180;
-      this.hyp = Math.cos(this.gantryAngle); 
+      this.gantryAngle = ((90 - 45) * Math.PI) / 180;
+      this.hyp = Math.cos(this.gantryAngle);
       this.adj = Math.tan(this.gantryAngle);
       this.currentZ = 0;
       this.beltLength = 100;
-
 
       this.nozzlePosition = new Vector3(0, 0, 0);
       this.firmwareRetraction = false;
@@ -180,11 +179,11 @@ export default class {
       this.csysContainers = new Array();
 
       this.lastCommand = 'G0';
-      
-      this.arcPlane = "XY"
+      this.arcPlane = 'XY';
 
-      
-
+      //Workplace coordinates
+      this.workplaceOffsets = [new Vector3(0, 0,0), new Vector3(0, 0, 0)];
+      this.currentWorkplace = 0; //internally we'll start at 0, but the user will see 1
    }
 
    doUpdate() {
@@ -305,16 +304,15 @@ export default class {
    }
 
    initVariables() {
-      this.currentPosition = new Vector3(0, 0, 0);
+      this.currentPosition = new Vector3(this.workplaceOffsets[this.currentWorkplace].x,this.workplaceOffsets[this.currentWorkplace].z,this.workplaceOffsets[this.currentWorkplace].y);
       this.cancelLoad = false;
       this.absolute = true;
       this.currentZ = 0;
       this.currentRowIdx = -1;
       this.gcodeLineIndex = [];
       this.lineMeshIndex = 0;
-      this.lastExtrudedZHeight = 0;
-      this.previousLayerHeight = 0;
-      this.currentLayerHeight = 0;
+      this.previousLayerHeight = this.currentPosition.y;
+      this.currentLayerHeight =  this.currentPosition.y;
       this.minFeedRate = Number.MAX_VALUE;
       this.maxFeedRate = 0;
       this.hasSpindle = false;
@@ -331,9 +329,6 @@ export default class {
       this.lastCommand = 'G0';
    }
 
-
-
-   
    g0g1(tokenString, lineNumber, filePosition, renderLine, command) {
       let tokens = tokenString.split(/(?=[GXYZEFUV])/);
       const line = new gcodeLine();
@@ -342,12 +337,7 @@ export default class {
       line.gcodeLineNumber = lineNumber;
       line.gcodeFilePosition = filePosition;
       line.start = this.currentPosition.clone();
-      if (this.zBelt) {
-         line.layerHeight = Math.abs(this.currentLayerHeight - this.previousLayerHeight);
-      }
-      else {
-         line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
-      }
+
 
       if ((command[0] === 'G1' || command[0] === 'G01') && this.g1AsExtrusion) {
          line.extruding = true;
@@ -355,39 +345,38 @@ export default class {
          this.maxHeight = this.currentPosition.y; //trying to get the max height of the model.
       }
 
-      if (this.zBelt) { 
-         tokens = tokens.sort().reverse()
+      if (this.zBelt) {
+         tokens = tokens.sort().reverse();
       }
-      
+
       for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
          let token = tokens[tokenIdx];
          switch (token[0]) {
             case 'X':
                if (this.zBelt) {
                   this.currentPosition.x = Number(token.substring(1));
-               }
-               else {
-                  this.currentPosition.x = this.absolute ? Number(token.substring(1)) : this.currentPosition.x + Number(token.substring(1));
+               } else {
+                  this.currentPosition.x = this.absolute ? Number(token.substring(1)) + this.workplaceOffsets[this.currentWorkplace].x : this.currentPosition.x + Number(token.substring(1));
                }
                hasXYMove = true;
                break;
             case 'Y':
                if (this.zBelt) {
                   this.currentPosition.y = Number(token.substring(1)) * this.hyp;
-                  this.currentPosition.z = this.currentZ + (this.currentPosition.y * this.adj );
-                  
+                  this.currentPosition.z = this.currentZ + this.currentPosition.y * this.adj;
                } else {
-                  this.currentPosition.z = this.absolute ? Number(token.substring(1)) : this.currentPosition.z + Number(token.substring(1));
+                  this.currentPosition.z = this.absolute ? Number(token.substring(1)) + this.workplaceOffsets[this.currentWorkplace].y : this.currentPosition.z + Number(token.substring(1));
                }
                hasXYMove = true;
                break;
             case 'Z':
                if (this.zBelt) {
                   this.currentZ = -Number(token.substring(1));
-                  this.currentPosition.z = this.currentZ + (this.currentPosition.y * this.adj);
+                  this.currentPosition.z = this.currentZ + this.currentPosition.y * this.adj;
                   hasXYMove = true;
                } else {
-                  this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1));
+                  this.currentPosition.y = this.absolute ? Number(token.substring(1)) + this.workplaceOffsets[this.currentWorkplace].z : this.currentPosition.y + Number(token.substring(1));
+
                   if (!this.lastY || this.lastY !== this.currentPosition.y) {
                      this.lastY = this.currentPosition.y;
                      if (this.lastY === undefined) this.lastY = 0;
@@ -431,10 +420,9 @@ export default class {
          }
       }
 
-      if (this.zBelt) { 
+      if (this.zBelt) {
          this.beltLength = this.currentPosition.z < this.beltLength ? this.currentPosition.z : this.beltLength;
       }
-
 
       if (line.extruding && this.skip) {
          return;
@@ -490,16 +478,24 @@ export default class {
          this.lines.push(line);
 
          if (this.zBelt && this.currentZ < this.currentLayerHeight && !this.isSupport) {
-            this.previousLayerHeight = this.currentLayerHeight
+            this.previousLayerHeight = this.currentLayerHeight;
             this.currentLayerHeight = this.currentZ;
-         }
-         else if (!this.zBelt && this.currentPosition.y > this.currentLayerHeight && !this.isSupport && hasXYMove) {
+         } else if (!this.zBelt && this.currentPosition.y > this.currentLayerHeight && !this.isSupport && hasXYMove) {
             this.previousLayerHeight = this.currentLayerHeight;
             this.currentLayerHeight = this.currentPosition.y;
          }
+
+         
+
       } else if (this.renderTravels && !line.extruding) {
          line.color = new Color4(1, 0, 0, 1);
          this.travels.push(line);
+      }
+
+            if (this.zBelt) {
+         line.layerHeight = Math.abs(this.currentLayerHeight - this.previousLayerHeight);
+      } else {
+         line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
       }
    }
 
@@ -507,11 +503,10 @@ export default class {
       let tokens = tokenString.split(/(?=[GXYZIJKFRE])/);
       let extruding = tokenString.indexOf('E') > 0 || this.g1AsExtrusion; //Treat as an extrusion in cnc mode
       let cw = tokens.filter((t) => t === 'G2' || t === 'G02');
-      let arcResult = {position: this.currentPosition, points: []};
+      let arcResult = { position: this.currentPosition.clone(), points: [] };
       try {
-         arcResult = doArc(tokens, this.currentPosition, !this.absolute, 0.1, this.fixRadius, this.arcPlane);
-      }
-      catch (ex) {
+         arcResult = doArc(tokens, this.currentPosition, !this.absolute, 0.1, this.fixRadius, this.arcPlane, this.workplaceOffsets[this.currentWorkplace]);
+      } catch (ex) {
          console.error(`Arc Error`, ex);
       }
       let curPt = this.currentPosition.clone();
@@ -667,6 +662,8 @@ export default class {
 
    loadingComplete() {
       this.renderInstances.forEach((inst) => (inst.isLoading = false));
+      this.updateFilePosition(Number.MAX_VALUE - 1);
+      this.updateFilePosition(Number.MAX_VALUE);
    }
 
    async processLine(tokenString, lineNumber, filePosition, renderLine = true) {
@@ -681,109 +678,128 @@ export default class {
       let commands = tokenString.match(/[GM]+[0-9.]+/g); //|S+
 
       if (commands === null) {
-         let hasMove = tokenString.match(/[XYZ+[0-9.]+/);
-         if (hasMove !== null) { 
+         let hasMove = tokenString.match(/[XYZ]+[0-9.]+/);
+         if (hasMove !== null) {
             commands = this.lastCommand;
          }
       }
 
-      
-
-      //Fix gcode command
-      //command = command[0] + Number(command.substring(1));
-
-      if (commands !== null) {
-         //commands = commands.filter((c) => c.startsWith('G') || c.startsWith('M')); //this is probably not necessary because the match above should only return G or M commands
-         for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) { 
+      if (commands) {
+         for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) {
             //console.log(`index ${commandIndex} command ${commands[commandIndex]}`);
-         switch (commands[commandIndex]) {
-            case 'G0':
-            case 'G1':
-            case 'G00':
-            case 'G01':
-               this.g0g1(tokenString, lineNumber, filePosition, renderLine, commands);
-               break;
-            case 'G2':
-            case 'G3':
-            case 'G02':
-            case 'G03':
-               this.g2g3(tokenString, lineNumber, filePosition, renderLine);
-               break;
-            case 'G10':
-               this.firmwareRetraction = true;
-               break;
-            case 'G11':
-               this.firmwareRetraction = false;
-               break;
-            case 'G17': this.arcPlane = "XY";  break;
-            case 'G18': this.arcPlane = "XZ"; break;
-            case 'G19': this.arcPlane = "YZ"; break;
-            case 'G20':
-               this.inches = true;
-               break;
-            case 'G28':
-               //Home
-               tokens = tokenString.split(/(?=[GXYZ])/);
-               if (tokens.length === 1) {
-                  this.currentPosition = new Vector3(0, 0, 0);
-               } else {
-                  if (tokens.some((t) => t.trim() === 'X')) {
-                     this.currentPosition.x = 0;
+            switch (commands[commandIndex]) {
+               case 'G0':
+               case 'G1':
+               case 'G00':
+               case 'G01':
+                  this.g0g1(tokenString, lineNumber, filePosition, renderLine, commands);
+                  break;
+               case 'G2':
+               case 'G3':
+               case 'G02':
+               case 'G03':
+                  this.g2g3(tokenString, lineNumber, filePosition, renderLine);
+                  break;
+               case 'G10':
+                  this.firmwareRetraction = true;
+                  break;
+               case 'G11':
+                  this.firmwareRetraction = false;
+                  break;
+               case 'G17':
+                  this.arcPlane = 'XY';
+                  break;
+               case 'G18':
+                  this.arcPlane = 'XZ';
+                  break;
+               case 'G19':
+                  this.arcPlane = 'YZ';
+                  break;
+               case 'G20':
+                  this.inches = true;
+                  break;
+               case 'G28':
+                  //Home
+                  tokens = tokenString.split(/(?=[GXYZ])/);
+                  if (tokens.length === 1 || tokenString === "G28 W") {  //G28 W is due to PrusaSlicer command
+                     // this.currentPosition = new Vector3(0, 0, 0);
+                     this.currentPosition = new Vector3(this.workplaceOffsets[this.currentWorkplace].x, this.workplaceOffsets[this.currentWorkplace].z, this.workplaceOffsets[this.currentWorkplace].y );
+                  } else {
+                     if (tokens.some((t) => t.trim() === 'X')) {
+                        // this.currentPosition.x = 0;
+                        this.currentPosition.x = this.workplaceOffsets[this.currentWorkplace].x;
+                     }
+                     if (tokens.some((t) => t.trim() === 'Y')) {
+                        // this.currentPosition.z = 0;
+                        this.currentPosition.z = this.workplaceOffsets[this.currentWorkplace].y;
+                     }
+                     if (tokens.some((t) => t.trim() === 'Z')) {
+                        //this.currentPosition.y = 0;
+                        this.currentPosition.y = this.workplaceOffsets[this.currentWorkplace].z;
+                     }
                   }
-                  if (tokens.some((t) => t.trim() === 'Y')) {
-                     this.currentPosition.z = 0;
+                  break;
+               case 'G53':
+                  //Machine movement - need to think through this one.
+                  break;
+               case 'G54':
+               case 'G55':
+               case 'G56':
+               case 'G57':
+               case 'G58':
+               case 'G59':
+                  this.currentWorkplace = 54 - Number(commands[commandIndex].substring(1));
+                  this.currentPosition = this.workplaceOffsets[this.currentWorkplace].clone();
+                  break;
+               case 'G59.1':
+               case 'G59.2':
+               case 'G59.2':
+                  this.currentWorkplace = (58.6 - Number(commands[commandIndex].substring(1))) * 10;
+                  this.currentPosition = this.workplaceOffsets[this.currentWorkplace].clone();
+                  break;
+               case 'G90':
+                  this.absolute = true;
+                  break;
+               case 'G91':
+                  this.absolute = false;
+                  break;
+               case 'G92':
+                  //this resets positioning, typically for extruder, probably won't need
+                  break;
+               case 'S':
+                  this.hasSpindle = true;
+                  break;
+               case 'M3':
+               case 'M4':
+                  {
+                     const tokens = tokenString.split(/(?=[SM])/);
+                     let spindleSpeed = tokens.filter((speed) => speed.startsWith('S'));
+                     spindleSpeed = spindleSpeed[0] ? Number(spindleSpeed[0].substring(1)) : 0;
+                     if (spindleSpeed > 0) {
+                        this.hasSpindle = true;
+                     }
                   }
-                  if (tokens.some((t) => t.trim() === 'Z')) {
-                     this.currentPosition.y = 0;
-                  }
+                  break;
+               case 'M567': {
+                  this.m567(tokenString);
+                  break;
                }
-               break;
-            case 'G53':
-               //Machine movement - need to think through this one.
-               break;
-            case 'G90':
-               this.absolute = true;
-               break;
-            case 'G91':
-               this.absolute = false;
-               break;
-            case 'G92':
-               //this resets positioning, typically for extruder, probably won't need
-               break;
-            case 'S':
-               this.hasSpindle = true;
-               break;
-            case 'M3':
-            case 'M4':
-               {
-                  const tokens = tokenString.split(/(?=[SM])/);
-                  let spindleSpeed = tokens.filter((speed) => speed.startsWith('S'));
-                  spindleSpeed = spindleSpeed[0] ? Number(spindleSpeed[0].substring(1)) : 0;
-                  if (spindleSpeed > 0) {
-                     this.hasSpindle = true;
+               case 'M600':
+                  {
+                     try {
+                        this.currentTool++;
+                        if (this.currentTool >= this.tools.length) {
+                           this.currentTool = 0;
+                        }
+                        if (this.colorMode !== ColorMode.Feed) {
+                           this.currentColor = this.tools[this.currentTool].color.clone();
+                        }
+                     } catch (ex) {
+                        console.log(ex);
+                     }
                   }
-               }
-               break;
-            case 'M567': {
-               this.m567(tokenString);
-               break;
+                  break;
             }
-            case 'M600':
-               {
-                  try {
-                     this.currentTool++;
-                     if (this.currentTool >= this.tools.length) {
-                        this.currentTool = 0;
-                     }
-                     if (this.colorMode !== ColorMode.Feed) {
-                        this.currentColor = this.tools[this.currentTool].color.clone();
-                     }
-                  } catch (ex) {
-                     console.log(ex);
-                  }
-               }
-               break;
-         }
             this.lastCommand = commands;
          }
       } else {
@@ -845,12 +861,13 @@ export default class {
    }
 
    async createMesh(scene) {
-
-         //Do a z belt fix for layer heights - so far they appear fixed but some values can be off on initial extrusions
-         if (this.zBelt) {
-            let minlh = this.lines[this.lines.length - 1].layerHeight;
-            this.lines.forEach((l) => { l.layerHeight =  minlh });
-         }
+      //Do a z belt fix for layer heights - so far they appear fixed but some values can be off on initial extrusions
+      if (this.zBelt) {
+         let minlh = this.lines[this.lines.length - 1].layerHeight;
+         this.lines.forEach((l) => {
+            l.layerHeight = minlh;
+         });
+      }
 
       let renderer;
       if (this.renderVersion === RenderMode.Line || this.renderVersion === RenderMode.Point) {
@@ -970,7 +987,6 @@ export default class {
    updateMaxFeedColor(value) {
       localStorage.setItem('maxFeedColor', value);
       this.maxFeedColorString = value;
-
       this.maxFeedColor = Color4.FromHexString(value.padEnd(9, 'F'));
    }
 
@@ -1057,9 +1073,8 @@ export default class {
    }
 
    setZBeltAngle(angle) {
-      this.gantryAngle = (90 - angle) * Math.PI / 180;
+      this.gantryAngle = ((90 - angle) * Math.PI) / 180;
       this.hyp = Math.cos(this.gantryAngle);
       this.adj = Math.tan(this.gantryAngle);
    }
-
 }

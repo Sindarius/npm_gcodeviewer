@@ -36,6 +36,8 @@ export default class ToolCursor {
     
         const mat = new StandardMaterial('nozzleMaterial', this.scene)
         this.toolCursorMesh.material = mat;
+        this.toolCursorMesh.hasVertexAlpha = true
+        this.toolCursorMesh.material.alpha = 0.4
         mat.diffuseColor = new Color3(1.0, 0.766, 0.336)
     }
 

@@ -185,7 +185,7 @@ export default class LineRenderer extends BaseRenderer {
       if (this.isLoading || Date.now() - timeStamp < 200) return;
       timeStamp = Date.now();
 
-      if (Math.abs(lastPosition - this.currentFilePosition) > this.scrubDistance || this.forceRedraw) {
+      if (this.doScrub(lastPosition, minFilePosition, maxFilePosition) || this.forceRedraw) {
         this.forceRedraw = false;
         scrubbing = true;
 
