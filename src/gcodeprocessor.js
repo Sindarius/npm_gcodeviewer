@@ -697,7 +697,6 @@ export default class {
 
       if (commands === null) {
          let hasMove = tokenString.match(/[XYZ]+[+-]?[0-9.]+/g);
-         console.log(hasMove);
          if (hasMove !== null) {
             commands = this.lastCommand;
          }
