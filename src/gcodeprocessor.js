@@ -327,6 +327,13 @@ export default class {
       this.renderedLines = [];
       this.beltLength = 0;
       this.lastCommand = 'G0';
+
+      //incase no value is currently set.
+      if (this.workplaceOffsets.length === 0) {
+         this.workplaceOffsets = [new Vector3(0, 0, 0)];
+         this.currentWorkplace = 0;
+      }
+
    }
 
    g0g1(tokenString, lineNumber, filePosition, renderLine, command) {

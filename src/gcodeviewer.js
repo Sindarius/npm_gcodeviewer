@@ -599,7 +599,8 @@ export default class {
   }
 
   setWorkplaceVisiblity(visible) {
-    this.workplace.visible = visible
+    this.workplace.visible = visible;
+    this.workplace.setOffsets = this.gcodeProcessor.workplaceOffsets;
     this.workplace.render();
   }
 

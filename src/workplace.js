@@ -43,11 +43,9 @@ export default class Workplace {
         }
 
         if (this.visible) {
-
             //this.workplacePoints.forEach((point) => {
             for (let idx = 0; idx < this.workplacePoints.length; idx++) {
                 const point = this.workplacePoints[idx];
-                console.log(point);
                 if (!Vector3.ZeroReadOnly.equals(point)) {
 
                     const textMesh = this.makeTextPlane(idx + 1, "white", 5);
