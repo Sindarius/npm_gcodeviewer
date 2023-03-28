@@ -696,7 +696,6 @@ export default class {
       let commands = tokenString.match(/[GM]+[0-9.]+/g); //|S+
 
       if (commands === null) {
-         console.log(tokenString)
          let hasMove = tokenString.match(/[XYZ]+[+-]?[0-9.]+/g);
          console.log(hasMove);
          if (hasMove !== null) {
