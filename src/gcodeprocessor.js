@@ -499,10 +499,15 @@ export default class {
          this.travels.push(line);
       }
 
-            if (this.zBelt) {
+      if (this.zBelt) {
          line.layerHeight = Math.abs(this.currentLayerHeight - this.previousLayerHeight);
       } else {
-         line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+         if (this.g1AsExtrusion) {
+            line.layerHeight = 0.1; // this.tools[this.currentTool].diameter;
+         }
+         else {
+            line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+         }
       }
    }
 

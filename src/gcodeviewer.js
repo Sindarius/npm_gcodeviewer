@@ -425,7 +425,6 @@ export default class {
     this.buildtoolCursor();
     this.bed.buildBed();
     this.axes.render();
-    console.log('workplace render')
     this.workplace.render();
   }
   async reload() {
