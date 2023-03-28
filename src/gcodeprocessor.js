@@ -527,7 +527,13 @@ export default class {
          line.tool = this.currentTool;
          line.gcodeLineNumber = lineNumber;
          line.gcodeFilePosition = filePosition;
-         line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+         if (this.g1AsExtrusion) {
+            line.layerHeight = 0.1; // this.tools[this.currentTool].diameter;
+         }
+         else {
+            line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+         }
+
          line.start = curPt.clone();
          line.end = new Vector3(point.x, point.y, point.z);
          line.color = this.currentColor.clone();
