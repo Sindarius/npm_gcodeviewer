@@ -2,5 +2,6 @@ node_modules/
 dist/
 *.tgz
 cpy.bat
+cpy2.bat
 
 test.bat
