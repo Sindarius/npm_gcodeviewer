@@ -82,10 +82,10 @@ export default class LineRenderer extends BaseRenderer {
           if (this.travels) {
             colorData[colorIdx + 3] = 0;
             colorData[colorIdx + 7] = 0;
-            completed[idx] = gcodeLineIndex[idx] < this.currentFilePosition;
+            completed[idx] = gcodeLineIndex[idx] <= this.currentFilePosition;
           }
           else {
-            if (gcodeLineIndex[idx] < this.currentFilePosition) {
+            if (gcodeLineIndex[idx] <= this.currentFilePosition) {
               colorArray[idx][0].toArray(colorData, colorIdx);
               colorArray[idx][1].toArray(colorData, colorIdx + 4);
               colorData[colorIdx + 3] = additive[idx] ? 1 : 0;
@@ -107,14 +107,14 @@ export default class LineRenderer extends BaseRenderer {
         if (gcodeLineIndex[renderToIdx] <= this.currentFilePosition) {
           renderTo = renderToIdx;
         }
-        if (gcodeLineIndex[renderToIdx] <= this.currentFilePosition + this.lookAheadLength) {
+        if (gcodeLineIndex[renderToIdx] <= this.currentFilePosition) {
           renderAhead = renderToIdx;
         }
       }
 
       let startIdx = completed.findIndex(l => l === false);
 
-      for (let idx = startIdx; idx < renderTo; idx++) {
+      for (let idx = startIdx; idx <= renderTo; idx++) {
         let colorIdx = idx * 8;
         if (additive[idx]) {
           /*Additive Rendering*/

@@ -140,7 +140,6 @@ export default class {
       this.debug = false;
       this.specularColor = new Color3(0, 0, 0);
 
-      this.lookAheadLength = 500;
       this.cancelLoad = false;
 
       this.loadingProgressCallback = () => {};
