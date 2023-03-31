@@ -95,7 +95,7 @@ export default class BlockTIRenderer extends BaseRenderer {
                 let colorIdx = idx * 4;
 
                 if (scrubbing) {
-                    if (gcodeLineIndex[idx] < this.currentFilePosition) {
+                    if (gcodeLineIndex[idx] <= this.currentFilePosition) {
                         segments[idx].color.toArray(colorData, colorIdx);
                         segments[idx].matrix.copyToArray(matrixData, idx * 16);
                         colorData[colorIdx + 3] = 1;
@@ -118,7 +118,7 @@ export default class BlockTIRenderer extends BaseRenderer {
                 if (completed[idx]) continue;
 
 
-                if (gcodeLineIndex[idx] < this.currentFilePosition && colorData[colorIdx + 3] < 0.5) {
+                if (gcodeLineIndex[idx] <= this.currentFilePosition && colorData[colorIdx + 3] < 0.5) {
                     this.progressColor.toArray(colorData, colorIdx);
                     colorData[colorIdx + 3] = 0.9;
                     colorUpdated = true;
