@@ -933,7 +933,7 @@ export default class {
       }
 
       for (let i = this.lastFilePositionIndex; i < this.renderedLines.length; i++) {
-         if (this.renderedLines[i].gcodeFilePosition > filePosition) {
+         if (this.renderedLines[i].gcodeFilePosition > filePosition + 1) {
             break;
          }
          this.currentLineNumber = this.renderedLines[i].gcodeLineNumber;
