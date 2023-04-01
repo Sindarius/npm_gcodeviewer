@@ -59,7 +59,7 @@ export default class BlockTIRenderer extends BaseRenderer {
 
             if (!line.extruding) { continue; }
 
-            let segment = line.renderLinev4(tool.getDiameter(), 0.1);
+            let segment = line.renderLinev4(this.g1AsExtrusion ? 0.1  : tool.getDiameter(), 0.1);
             let data = {};
             data.matrix = segment.matrix;
             data.color = segment.color;

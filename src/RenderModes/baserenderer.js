@@ -20,7 +20,8 @@ export class BaseRenderer {
       this.material = null;
       this.fadeRate = 0.2;
        this.transparentValue = 0.25;
-       this.renderRange = 0;
+      this.renderRange = 0;
+      this.g1AsExtrusion = false;
    }
 
    //Used for rendering visual

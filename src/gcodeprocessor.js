@@ -894,6 +894,7 @@ export default class {
       }
       renderer.progressColor = this.progressColor;
       renderer.vertexAlpha = this.vertexAlpha;
+      renderer.g1AsExtrusion = this.g1AsExtrusion;
       this.renderInstances.push(renderer);
 
       await renderer.render(this.lines.slice(0, this.linesIndex - 1));
