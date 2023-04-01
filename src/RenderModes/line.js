@@ -13,26 +13,26 @@ export default class LineRenderer extends BaseRenderer {
   }
 
   render(lines) {
-    let gcodeLineIndex = new Array();
+    let gcodeLineIndex =  new Array(lines.length);;
 
     this.renderMode = 'Line Rendering';
     //Extrusion
-    let lineArray = [];
-    let colorArray = [];
-    let additive = [];
-    let completed = [];
+    let lineArray = new Array(lines.length);
+    let colorArray =  new Array(lines.length);
+    let additive =  new Array(lines.length);
+    let completed =  new Array(lines.length);
     let transparentValue = this.vertexAlpha ? 0.25 : 0
 
     for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
       let line = lines[lineIdx];
       let tool = this.tools[line.tool];
 
-      gcodeLineIndex.push(line.gcodeFilePosition);
+      gcodeLineIndex[lineIdx] = line.gcodeFilePosition;
       let data = line.getPoints(this.scene);
-      lineArray.push(data.points);
-      colorArray.push(data.colors);
-      additive.push(tool.isAdditive() && !this.travels);
-      completed.push(false);
+      lineArray[lineIdx] = data.points;
+      colorArray[lineIdx] = data.colors;
+      additive[lineIdx] = tool.isAdditive() && !this.travels;
+      completed[lineIdx] = false;
     }
 
     let lineMesh = MeshBuilder.CreateLineSystem(

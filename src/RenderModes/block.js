@@ -49,8 +49,8 @@ export default class BlockTIRenderer extends BaseRenderer {
     }
 
     render(lines) {
-        let segments = new Array();
-        let gcodeLineIndex = new Array(); //file index when segmenet is rendered
+        let segments = new Array(lines.length);
+        let gcodeLineIndex = new Array(lines.length); //file index when segmenet is rendered
         let transparentValue = this.vertexAlpha ? 0.05 : 0;
         //Process the gcode and extra extrusions
         for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
@@ -63,20 +63,20 @@ export default class BlockTIRenderer extends BaseRenderer {
             let data = {};
             data.matrix = segment.matrix;
             data.color = segment.color;
-            segments.push(data);
-            gcodeLineIndex.push(segment.props.gcodeFilePosition);
+            segments[lineIdx] = data;
+            gcodeLineIndex[lineIdx] = segment.props.gcodeFilePosition;
         }
 
         let matrixData = new Float32Array(16 * segments.length);
         let colorData = new Float32Array(4 * segments.length);
-        let completed = new Array();
+        let completed = new Array(segments.length);
 
         for (var segIdx = 0; segIdx < segments.length; segIdx++) {
             let segment = segments[segIdx];
             segment.matrix.copyToArray(matrixData, segIdx * 16);
             segment.color.toArray(colorData, segIdx * 4)
             colorData[segIdx * 4 + 3] = transparentValue;
-            completed.push(false);
+            completed[lineIdx] = false;
         }
 
         let box = this.buildBox();

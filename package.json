@@ -1,53 +1,53 @@
 {
-	"name": "@sindarius/gcodeviewer",
-	"version": "3.4.10",
-	"description": "GCode Visualization Package",
-	"module": "dist/sindarius-gcodeviewer.es.js",
-	"sideEffects": false,
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "rollup -c"
-	},
-	"files": [
-		"/dist"
-	],
-	"eslintConfig": {
-		"root": true,
-		"env": {
-			"node": true
-		},
-		"extends": [
-			"plugin:vue/essential",
-			"eslint:recommended"
-		],
-		"parserOptions": {
-			"parser": "babel-eslint"
-		},
-		"rules": {}
-	},
-	"author": "Sindarius",
-	"license": "LGPL-3.0-or-later",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Sindarius/npm_gcodeviewer"
-	},
-	"homepage": "http://www.sindarius.com",
-	"dependencies": {
-		"@babylonjs/core": "^5.34.0",
-		"@babylonjs/inspector": "^5.34.0",
-		"@babylonjs/loaders": "^5.34.0",
-		"@babylonjs/materials": "^5.34.0",
-		"d3": "^7.4.4"
-	},
-	"devDependencies": {
-		"@babel/preset-env": "^7.17.10",
-		"@rollup/plugin-babel": "^5.3.1",
-		"@rollup/plugin-commonjs": "^22.0.0",
-		"@rollup/plugin-json": "^4.1.0",
-		"@rollup/plugin-node-resolve": "^13.3.0",
-		"babel-eslint": "^10.1.0",
-		"babel-plugin-transform-regenerator": "^6.26.0",
-		"babel-polyfill": "^6.26.0",
-		"rollup-plugin-terser": "^7.0.2"
-	}
+   "name": "@sindarius/gcodeviewer",
+   "version": "3.4.11",
+   "description": "GCode Visualization Package",
+   "module": "dist/sindarius-gcodeviewer.es.js",
+   "sideEffects": false,
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "build": "rollup -c"
+   },
+   "files": [
+      "/dist"
+   ],
+   "eslintConfig": {
+      "root": true,
+      "env": {
+         "node": true
+      },
+      "extends": [
+         "plugin:vue/essential",
+         "eslint:recommended"
+      ],
+      "parserOptions": {
+         "parser": "babel-eslint"
+      },
+      "rules": {}
+   },
+   "author": "Sindarius",
+   "license": "LGPL-3.0-or-later",
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/Sindarius/npm_gcodeviewer"
+   },
+   "homepage": "http://www.sindarius.com",
+   "dependencies": {
+      "@babylonjs/core": "^5.53.0",
+      "@babylonjs/inspector": "^5.53.0",
+      "@babylonjs/loaders": "^5.53.0",
+      "@babylonjs/materials": "^5.53.0",
+      "d3": "^7.4.4"
+   },
+   "devDependencies": {
+      "@babel/preset-env": "^7.17.10",
+      "@rollup/plugin-babel": "^5.3.1",
+      "@rollup/plugin-commonjs": "^22.0.0",
+      "@rollup/plugin-json": "^4.1.0",
+      "@rollup/plugin-node-resolve": "^13.3.0",
+      "babel-eslint": "^10.1.0",
+      "babel-plugin-transform-regenerator": "^6.26.0",
+      "babel-polyfill": "^6.26.0",
+      "rollup-plugin-terser": "^7.0.2"
+   }
 }

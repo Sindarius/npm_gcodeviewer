@@ -330,7 +330,9 @@ export default class {
     }
     this.setLoadFlag();
 
+//    console.profile("processGcodeFile")
     await this.gcodeProcessor.processGcodeFile(fileContents, this.renderQuality);
+    //console.profileEnd("processGcodeFile")
     this.clearLoadFlag();
 
     await this.gcodeProcessor.createMesh(this.scene);

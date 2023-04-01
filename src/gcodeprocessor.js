@@ -2,7 +2,6 @@
 
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color4, Color3 } from '@babylonjs/core/Maths/math.color';
-import { PointsCloudSystem } from '@babylonjs/core/Particles/pointsCloudSystem';
 import { pauseProcessing, doArc } from './utils.js';
 import gcodeLine from './gcodeline';
 import Tool, { ToolType } from './tool';
@@ -28,13 +27,20 @@ export const ColorMode = {
    Feature: 2
 };
 
+const MAXARRAYSIZE = 1000000;
+
 export default class {
    constructor() {
+
+      
+
       this.currentPosition = new Vector3(0, 0, 0);
       this.currentColor = new Color4(0.25, 0.25, 0.25, 1);
       this.currentTool = 0;
       this.renderVersion = RenderMode.Line;
       this.absolute = true; //Track if we are in relative or absolute mode.
+
+      this.linesIndex = 0;
       this.lines = [];
       this.renderedLines = []; //Lines that have been rendered - we'll use this to get the current file position etc.
       this.currentLineNumber = 0; //Index of current rendered line
@@ -85,7 +91,7 @@ export default class {
       this.renderFuncs = new Array();
 
       //Mesh Breaking
-      this.meshBreakPoint = 20000;
+      this.meshBreakPoint = 100000;
 
       //average feed rate trimming
       this.feedRateTrimming = false;
@@ -157,7 +163,7 @@ export default class {
       this.perimeterOnly = false;
 
       this.lastUpdate = Date.now();
-      this.g1AsExtrusion = false;
+      this.g1AsExtrusion = true;
 
       this.firstGCodeByte = 0;
       this.lastGCodeByte = 0;
@@ -181,7 +187,7 @@ export default class {
       this.arcPlane = 'XY';
 
       //Workplace coordinates
-      this.workplaceOffsets = [new Vector3(0, 0,0), new Vector3(0, 0, 0)];
+      this.workplaceOffsets = [new Vector3(1, 1,4), new Vector3(0, 0, 0)];
       this.currentWorkplace = 0; //internally we'll start at 0, but the user will see 1
    }
 
@@ -205,9 +211,12 @@ export default class {
    setRenderQualitySettings(numberOfLines, renderQuality) {
       if (this.forceVoxels) {
          this.renderVersion = RenderMode.Voxel;
-         this.meshBreakPoint = Number.MAX_VALUE;
+         this.meshBreakPoint = MAXARRAYSIZE;
+         this.lines = new Array(MAXARRAYSIZE);
          return;
       }
+
+      this.lines = new Array(this.meshBreakPoint * 1.5);
 
       if (renderQuality === undefined) {
          renderQuality = 1;
@@ -326,6 +335,8 @@ export default class {
       this.renderedLines = [];
       this.beltLength = 0;
       this.lastCommand = 'G0';
+      this.lines = new Array(this.meshBreakPoint * 1.5);
+      this.linesIndex = 0;
 
       //incase no value is currently set.
       if (this.workplaceOffsets.length === 0) {
@@ -481,7 +492,7 @@ export default class {
             this.currentColor = new Color4(1, 1, 1, 1);
          }
          line.color = this.currentColor.clone();
-         this.lines.push(line);
+         this.lines[this.linesIndex++] = line;
 
          if (this.zBelt && this.currentZ < this.currentLayerHeight && !this.isSupport) {
             this.previousLayerHeight = this.currentLayerHeight;
@@ -553,7 +564,7 @@ export default class {
          }
 
          this.renderedLines.push(line);
-         this.lines.push(line);
+         this.lines[this.linesIndex++] = line;
       });
 
       //Last point to currentposition
@@ -674,6 +685,7 @@ export default class {
       if (this.loadingProgressCallback) {
          this.loadingProgressCallback(1);
       }
+
       file = {}; //Clear out the file.
    }
 
@@ -849,38 +861,20 @@ export default class {
          }
       }
       //break lines into manageable meshes at cost of extra draw calls
-      if (this.lines.length >= this.meshBreakPoint) {
+      if (this.linesIndex >= this.meshBreakPoint) {
          //lets build the mesh
          await this.createMesh(this.scene);
-         await pauseProcessing();
+        // await pauseProcessing();
          this.doUpdate();
          this.meshIndex++;
+         
       }
-   }
-
-   renderPointMode(scene) {
-      const meshIndex = this.lineMeshIndex;
-      this.gcodeLineIndex.push(new Array());
-      //point cloud
-      this.sps = new PointsCloudSystem('pcs' + meshIndex, 1, scene);
-
-      const l = this.lines;
-
-      const particleBuilder = function (particle, i, s) {
-         l[s].renderParticle(particle);
-      };
-
-      this.sps.addPoints(this.lines.length, particleBuilder);
-
-      this.sps.buildMeshAsync().then((mesh) => {
-         mesh.material.pointSize = 2;
-      });
    }
 
    async createMesh(scene) {
       //Do a z belt fix for layer heights - so far they appear fixed but some values can be off on initial extrusions
       if (this.zBelt) {
-         let minlh = this.lines[this.lines.length - 1].layerHeight;
+         let minlh = this.lines[this.linesIndex - 1].layerHeight;
          this.lines.forEach((l) => {
             l.layerHeight = minlh;
          });
@@ -902,14 +896,9 @@ export default class {
       renderer.vertexAlpha = this.vertexAlpha;
       this.renderInstances.push(renderer);
 
-      // for (let idx = 0; idx < this.lines.length; idx++) {
-      //    this.renderedLines.push(this.lines[idx]);
-      // }
+      await renderer.render(this.lines.slice(0, this.linesIndex - 1));
+      this.linesIndex = 0;
 
-      await renderer.render(this.lines);
-      this.lines = [];
-
-      //this.scene.render();
    }
 
    chunk(arr, chunkSize) {
