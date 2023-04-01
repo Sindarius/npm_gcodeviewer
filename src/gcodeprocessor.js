@@ -513,7 +513,7 @@ export default class {
          line.layerHeight = Math.abs(this.currentLayerHeight - this.previousLayerHeight);
       } else {
          if (this.g1AsExtrusion) {
-            line.layerHeight = 0.1; // this.tools[this.currentTool].diameter;
+            line.layerHeight = 1; // this.tools[this.currentTool].diameter;
          }
          else {
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
@@ -897,7 +897,10 @@ export default class {
       renderer.g1AsExtrusion = this.g1AsExtrusion;
       this.renderInstances.push(renderer);
 
-      await renderer.render(this.lines.slice(0, this.linesIndex - 1));
+      let linesToRender = this.lines.slice(0, this.linesIndex - 1)
+      if (linesToRender != null && linesToRender.length > 0) {
+         await renderer.render(linesToRender);
+      }
       this.linesIndex = 0;
 
    }

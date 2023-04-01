@@ -58,6 +58,7 @@ export default class CylinderRenderer extends BaseRenderer {
 
     render(lines) {
         let segments = new Array(lines.length);
+        let segmentCount = 0;
         let gcodeLineIndex = new Array(lines.length); //file index when segmenet is rendered
         let transparentValue = this.vertexAlpha ? 0.05 : 0;
         //Process the gcode and extra extrusions
@@ -68,19 +69,19 @@ export default class CylinderRenderer extends BaseRenderer {
             let tool = this.tools[line.tool];
             if (!line.extruding) { continue; }
 
-            let segment = line.renderLinev4(this.g1AsExtrusion ? 0.1 : tool.getDiameter(), 0.1);
+            let segment = line.renderLinev4(this.g1AsExtrusion ? 1 : tool.getDiameter(), 0.1);
             let data = {};
             data.matrix = segment.matrix;
             data.color = segment.color;
-            segments[lineIdx] = data;
+            segments[segmentCount++] = data;
             gcodeLineIndex[lineIdx] = segment.props.gcodeFilePosition;
         }
 
-        let matrixData = new Float32Array(16 * segments.length);
-        let colorData = new Float32Array(4 * segments.length);
-        let completed = new Array(segments.length);
+        let matrixData = new Float32Array(16 * segmentCount);
+        let colorData = new Float32Array(4 * segmentCount);
+        let completed = new Array(segmentCount);
 
-        for (var segIdx = 0; segIdx < segments.length; segIdx++) {
+        for (var segIdx = 0; segIdx < segmentCount; segIdx++) {
             let segment = segments[segIdx];
             segment.matrix.copyToArray(matrixData, segIdx * 16);
             segment.color.toArray(colorData, segIdx * 4)
@@ -98,7 +99,7 @@ export default class CylinderRenderer extends BaseRenderer {
         let updateSegments = () => {
             let colorUpdated = scrubbing;
             let positionUpdated = scrubbing;
-            for (let idx = 0; idx < segments.length; idx++) {
+            for (let idx = 0; idx < segmentCount; idx++) {
 
                 let matrixIdx = idx * 16;
                 let colorIdx = idx * 4;
