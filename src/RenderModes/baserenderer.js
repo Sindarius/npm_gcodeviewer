@@ -27,7 +27,7 @@ export class BaseRenderer {
    //Used for rendering visual
    updateFilePosition(position) {
       this.previousFilePosition = this.currentFilePosition;
-      this.currentFilePosition = position + 1; //deal with line end character
+      this.currentFilePosition = position + 3; //deal with line end character
    }
 
    updateLiveTrackingShowSolid(to) {

@@ -934,7 +934,7 @@ export default class {
       }
 
       for (let i = this.lastFilePositionIndex; i < this.renderedLines.length; i++) {
-         if (this.renderedLines[i].gcodeFilePosition > filePosition + 1) {
+         if (this.renderedLines[i].gcodeFilePosition > filePosition + 2) {
             break;
          }
          this.currentLineNumber = this.renderedLines[i].gcodeLineNumber;
