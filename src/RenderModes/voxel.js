@@ -9,6 +9,7 @@ import { BaseRenderer } from './baserenderer.js';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 
 import '@babylonjs/core/Meshes/thinInstanceMesh'
+import gcodeline from '../gcodeline.js';
 
 //Track series of events that happen to a particle over time and when
 class VoxelEvent {
@@ -100,6 +101,7 @@ export default class VoxelRenderer extends BaseRenderer {
         /********************************************************************************************** */
         for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
             let gcodeLine = lines[lineIdx];
+            if (gcodeLine == null) break;
             let tool = this.tools[gcodeLine.tool];
 
             if (!gcodeLine.extruding) { continue; } //We only care about gcode lines which are performing an action such as extrusion or cutting

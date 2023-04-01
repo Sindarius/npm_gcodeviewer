@@ -26,7 +26,7 @@ export class BaseRenderer {
 
    //Used for rendering visual
    updateFilePosition(position) {
-      this.previousFilePosition = this.currentFilePosition;
+      this.previousFilePosition = this.currentFilePosition - 5;
       this.currentFilePosition = position + 5; //deal with line end character
    }
 

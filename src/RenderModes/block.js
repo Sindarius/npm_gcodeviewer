@@ -54,7 +54,10 @@ export default class BlockTIRenderer extends BaseRenderer {
         let transparentValue = this.vertexAlpha ? 0.05 : 0;
         //Process the gcode and extra extrusions
         for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        
             let line = lines[lineIdx];
+            if (line == null)
+                break;
             let tool = this.tools[line.tool];
 
             if (!line.extruding) { continue; }

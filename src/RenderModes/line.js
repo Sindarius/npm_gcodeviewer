@@ -13,7 +13,7 @@ export default class LineRenderer extends BaseRenderer {
   }
 
   render(lines) {
-    let gcodeLineIndex =  new Array(lines.length);;
+    let gcodeLineIndex =  new Array(lines.length);
 
     this.renderMode = 'Line Rendering';
     //Extrusion
@@ -25,6 +25,7 @@ export default class LineRenderer extends BaseRenderer {
 
     for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
       let line = lines[lineIdx];
+      if (line == null) break;
       let tool = this.tools[line.tool];
 
       gcodeLineIndex[lineIdx] = line.gcodeFilePosition;
