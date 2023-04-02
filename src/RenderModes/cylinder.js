@@ -39,7 +39,7 @@ export default class CylinderRenderer extends BaseRenderer {
         }
 
         
-        let cylinder = MeshBuilder.CreateCylinder('box', {height : 1, diameter: 1}, this.scene);
+        let cylinder = MeshBuilder.CreateCylinder('box', { height: 1, diameter: 1 }, this.scene);
         cylinder.locallyTranslate(new Vector3(0,0,0));
         cylinder.rotate(new Vector3(0,0,1), Math.PI/2, Space.WORLD);
         cylinder.bakeCurrentTransformIntoVertices();
@@ -171,6 +171,7 @@ export default class CylinderRenderer extends BaseRenderer {
 
         let lastPosition = 0;
         let scrubbing = false;
+        let meshFrozen = false;
 
         let timeStamp = Date.now();
         const beforeRenderFunc = () => {
@@ -184,12 +185,27 @@ export default class CylinderRenderer extends BaseRenderer {
                 for (let idx = 0; idx < completed.length; idx++) {
                     completed[idx] = false;
                 }
+                if (meshFrozen) { 
+                    cylinder.unfreezeWorldMatrix();
+                }
                 updateSegments();
                 
             } else if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
                 scrubbing = false;
+                
+                if (meshFrozen) {
+                    cylinder.unfreezeWorldMatrix();
+                }
+
                 updateSegments();
             }
+            else {
+                if (!meshFrozen) {
+                    meshFrozen = true;
+                    cylinder.freezeWorldMatrix();
+                }
+            }
+            
            
             lastPosition = this.currentFilePosition;
         }

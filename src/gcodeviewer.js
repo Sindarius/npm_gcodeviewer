@@ -21,8 +21,8 @@ import '@babylonjs/core/Engines/WebGPU/Extensions';
 import { JRNozzle } from './models';
 import './models';
 
-//import '@babylonjs/core/Debug/debugLayer'
-//import '@babylonjs/inspector'
+// import '@babylonjs/core/Debug/debugLayer';
+// import '@babylonjs/inspector';
 
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
@@ -46,7 +46,7 @@ export default class {
       this.loading = false;
       this.toolVisible = false;
       this.travelVisible = false;
-      this.debug = false;
+      this.debug =false;
       this.zTopClipValue = 1000000;
       this.zBottomClipValue = -1000000;
       this.cancelHitTimer = 0;
@@ -73,8 +73,8 @@ export default class {
       this.simulationTimeToMove = 0;
       this.simulationCurrentLine = null;
       this.simulationMultiplier = 1;
-      this.simulationUpdatePosition = () => { };
-      this.simulationStopped = () => { };
+      this.simulationUpdatePosition = () => {};
+      this.simulationStopped = () => {};
       this.simLine = Vector3.Zero();
       this.isMMS = false;
    }
@@ -127,6 +127,7 @@ export default class {
 
       this.engine.enableOfflineSupport = false;
       this.scene = new Scene(this.engine);
+
       if (this.debug) {
          //this.scene.debugLayer.show({ embedMode: true });
       }
@@ -154,17 +155,28 @@ export default class {
       light2.diffuse = new Color3(1, 1, 1);
       light2.specular = new Color3(1, 1, 1);
       this.engine.runRenderLoop(() => {
+
+         if (document.hidden) {
+            return;
+         }
+
          if (!this.simulation) {
             if (this.pause || (Date.now() - this.gcodeProcessor.lastUpdate > this.renderTimeout && this.isArcRotateCameraStopped(this.orbitCamera))) {
                return;
             }
+         } else {
+            if (this.pause) {
+               console.log('e', Date.now() - this.gcodeProcessor.lastUpdate > this.renderTimeout)
+               return;
+            }
          }
+
          //Run a realtime simulation playback
          if (this.simulation) {
             try {
                this.runSimulation();
+               this.gcodeProcessor.doUpdate();
             } catch (ex) {
-              console.log(ex)
                this.simulation = false;
                this.simulationStopped();
             }
@@ -615,11 +627,12 @@ export default class {
       this.scene.render();
    }
 
-   startSimulation() { 
+   startSimulation() {
       if (this.gcodeProcessor.lastFilePositionIndex >= this.gcodeProcessor.renderedLines.length - 1) {
          this.gcodeProcessor.updateFilePositionIndex(1);
       }
       this.simulation = true;
+      this.gcodeProcessor.doUpdate();
    }
 
    stopSimulation() {
@@ -627,10 +640,9 @@ export default class {
       this.simulationStopped();
    }
 
-   clamp(value, min, max) { 
+   clamp(value, min, max) {
       return Math.min(Math.max(value, min), max);
    }
-
 
    runSimulation() {
       if (this.gcodeProcessor.renderedLines.length === 0) return;
@@ -642,25 +654,25 @@ export default class {
       }
 
       if (this.simulationCurrentLine != this.gcodeProcessor.renderedLines[this.gcodeProcessor.lastFilePositionIndex]) {
-        this.simulationCurrentLine = this.gcodeProcessor.renderedLines[this.gcodeProcessor.lastFilePositionIndex];
+         this.simulationCurrentLine = this.gcodeProcessor.renderedLines[this.gcodeProcessor.lastFilePositionIndex];
          this.updateToolPosition(this.simulationCurrentLine.start);
-        this.simulationLastUpdate = 0;
-        
-        let mms = this.isMMS ?   this.simulationCurrentLine.feedRate : this.simulationCurrentLine.feedRate / 60;
-        this.simulationTimeToMove = this.simulationCurrentLine.length() / mms * 1000;
-        this.simulationUpdatePosition(this.simulationCurrentLine.gcodeFilePosition);
-      } 
-     
+         this.simulationLastUpdate = 0;
+
+         let mms = this.isMMS ? this.simulationCurrentLine.feedRate : this.simulationCurrentLine.feedRate / 60;
+         this.simulationTimeToMove = (this.simulationCurrentLine.length() / mms) * 1000;
+         this.simulationUpdatePosition(this.simulationCurrentLine.gcodeFilePosition);
+      }
+
       this.simLine = this.simulationCurrentLine.start.clone();
-      this.simulationLastUpdate += this.engine.getDeltaTime() * this.simulationMultiplier;
+      this.simulationLastUpdate += this.engine.getDeltaTime() * this.simulationMultiplier * this.scene.getAnimationRatio();
       let value = this.clamp(this.simulationLastUpdate / this.simulationTimeToMove, 0, 1);
       Vector3.LerpToRef(this.simulationCurrentLine.start, this.simulationCurrentLine.end, value, this.simLine);
       this.updateToolPosition(this.simLine);
       if (this.simulationLastUpdate >= this.simulationTimeToMove || this.simulationTimeToMove == Infinity || this.simulationTimeToMove == 0) {
-            
-            this.gcodeProcessor.updateFilePositionIndex(this.gcodeProcessor.lastFilePositionIndex + (this.simulationMultiplier > 10 ? this.simulationMultiplier : 1));
-            
-         }
-      
+         let update = this.simulationMultiplier > 10 ? this.simulationMultiplier : 1;
+         let ratio = this.scene.getAnimationRatio()
+         if (ratio > 3) { update += ~~ratio; }
+         this.gcodeProcessor.updateFilePositionIndex(this.gcodeProcessor.lastFilePositionIndex + update);
+      }
    }
 }

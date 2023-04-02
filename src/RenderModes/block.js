@@ -164,6 +164,7 @@ export default class BlockTIRenderer extends BaseRenderer {
 
         let lastPosition = 0;
         let scrubbing = false;
+        let meshFrozen = false;
 
         let timeStamp = Date.now();
         let beforeRenderFunc = () => {
@@ -177,11 +178,26 @@ export default class BlockTIRenderer extends BaseRenderer {
                 for (let idx = 0; idx < completed.length; idx++) {
                     completed[idx] = false;
                 }
+
+                if (meshFrozen) {
+                    box.unfreezeWorldMatrix();
+                }
                 updateSegments();
 
             } else if (this.currentFilePosition >= minFilePosition - 30000 && this.currentFilePosition <= maxFilePosition + 30000) {
                 scrubbing = false;
+                
+                if (meshFrozen) {
+                    box.unfreezeWorldMatrix();
+                }
+
                 updateSegments();
+            }
+            else {
+                if(!meshFrozen) {
+                    box.freezeWorldMatrix();
+                    meshFrozen = true;
+                }
             }
 
             lastPosition = this.currentFilePosition;
