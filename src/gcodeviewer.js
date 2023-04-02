@@ -616,7 +616,6 @@ export default class {
    }
 
    startSimulation() { 
-      console.log(this.gcodeProcessor.lastFilePositionIndex, this.gcodeProcessor.renderedLines.length);
       if (this.gcodeProcessor.lastFilePositionIndex >= this.gcodeProcessor.renderedLines.length - 1) {
          this.gcodeProcessor.updateFilePositionIndex(1);
       }
