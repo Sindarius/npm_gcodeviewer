@@ -31,9 +31,6 @@ const MAXARRAYSIZE = 1000000;
 
 export default class {
    constructor() {
-
-      
-
       this.currentPosition = new Vector3(0, 0, 0);
       this.currentColor = new Color4(0.25, 0.25, 0.25, 1);
       this.currentTool = 0;
@@ -163,7 +160,7 @@ export default class {
       this.perimeterOnly = false;
 
       this.lastUpdate = Date.now();
-      this.g1AsExtrusion = true;
+      this.g1AsExtrusion = false;
 
       this.firstGCodeByte = 0;
       this.lastGCodeByte = 0;
@@ -176,7 +173,10 @@ export default class {
       this.currentZ = 0;
       this.beltLength = 100;
 
+      this.nozzleStartPosition = new Vector3(0, 0, 0);
       this.nozzlePosition = new Vector3(0, 0, 0);
+      this.nozzleFeedRate = 0;
+
       this.firmwareRetraction = false;
       this.inches = false;
       this.fixRadius = false;
@@ -187,7 +187,7 @@ export default class {
       this.arcPlane = 'XY';
 
       //Workplace coordinates
-      this.workplaceOffsets = [new Vector3(1, 1,4), new Vector3(0, 0, 0)];
+      this.workplaceOffsets = [new Vector3(1, 1, 4), new Vector3(0, 0, 0)];
       this.currentWorkplace = 0; //internally we'll start at 0, but the user will see 1
    }
 
@@ -312,7 +312,7 @@ export default class {
    }
 
    initVariables() {
-      this.currentPosition = new Vector3(this.workplaceOffsets[this.currentWorkplace].x,this.workplaceOffsets[this.currentWorkplace].z,this.workplaceOffsets[this.currentWorkplace].y);
+      this.currentPosition = new Vector3(this.workplaceOffsets[this.currentWorkplace].x, this.workplaceOffsets[this.currentWorkplace].z, this.workplaceOffsets[this.currentWorkplace].y);
       this.cancelLoad = false;
       this.absolute = true;
       this.currentZ = 0;
@@ -320,7 +320,7 @@ export default class {
       this.gcodeLineIndex = [];
       this.lineMeshIndex = 0;
       this.previousLayerHeight = this.currentPosition.y;
-      this.currentLayerHeight =  this.currentPosition.y;
+      this.currentLayerHeight = this.currentPosition.y;
       this.minFeedRate = Number.MAX_VALUE;
       this.maxFeedRate = 0;
       this.hasSpindle = false;
@@ -343,7 +343,6 @@ export default class {
          this.workplaceOffsets = [new Vector3(0, 0, 0)];
          this.currentWorkplace = 0;
       }
-
    }
 
    g0g1(tokenString, lineNumber, filePosition, renderLine, command) {
@@ -354,7 +353,7 @@ export default class {
       line.gcodeLineNumber = lineNumber;
       line.gcodeFilePosition = filePosition;
       line.start = this.currentPosition.clone();
-
+      line.feedRate = this.currentFeedRate;
 
       if ((command[0] === 'G1' || command[0] === 'G01') && this.g1AsExtrusion) {
          line.extruding = true;
@@ -501,9 +500,6 @@ export default class {
             this.previousLayerHeight = this.currentLayerHeight;
             this.currentLayerHeight = this.currentPosition.y;
          }
-
-         
-
       } else if (this.renderTravels && !line.extruding) {
          line.color = new Color4(1, 0, 0, 1);
          this.travels.push(line);
@@ -514,8 +510,7 @@ export default class {
       } else {
          if (this.g1AsExtrusion) {
             line.layerHeight = 1; // this.tools[this.currentTool].diameter;
-         }
-         else {
+         } else {
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
          }
       }
@@ -537,10 +532,10 @@ export default class {
          line.tool = this.currentTool;
          line.gcodeLineNumber = lineNumber;
          line.gcodeFilePosition = filePosition;
+         line.feedRate = this.currentFeedRate;
          if (this.g1AsExtrusion) {
-            line.layerHeight = 0.1; // this.tools[this.currentTool].diameter;
-         }
-         else {
+            line.layerHeight = 1; // this.tools[this.currentTool].diameter;
+         } else {
             line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
          }
 
@@ -750,9 +745,10 @@ export default class {
                case 'G28':
                   //Home
                   tokens = tokenString.split(/(?=[GXYZ])/);
-                  if (tokens.length === 1 || tokenString === "G28 W") {  //G28 W is due to PrusaSlicer command
+                  if (tokens.length === 1 || tokenString === 'G28 W') {
+                     //G28 W is due to PrusaSlicer command
                      // this.currentPosition = new Vector3(0, 0, 0);
-                     this.currentPosition = new Vector3(this.workplaceOffsets[this.currentWorkplace].x, this.workplaceOffsets[this.currentWorkplace].z, this.workplaceOffsets[this.currentWorkplace].y );
+                     this.currentPosition = new Vector3(this.workplaceOffsets[this.currentWorkplace].x, this.workplaceOffsets[this.currentWorkplace].z, this.workplaceOffsets[this.currentWorkplace].y);
                   } else {
                      if (tokens.some((t) => t.trim() === 'X')) {
                         // this.currentPosition.x = 0;
@@ -864,10 +860,9 @@ export default class {
       if (this.linesIndex >= this.meshBreakPoint) {
          //lets build the mesh
          await this.createMesh(this.scene);
-        // await pauseProcessing();
+         await pauseProcessing();
          this.doUpdate();
          this.meshIndex++;
-         
       }
    }
 
@@ -897,12 +892,11 @@ export default class {
       renderer.g1AsExtrusion = this.g1AsExtrusion;
       this.renderInstances.push(renderer);
 
-      let linesToRender = this.lines.slice(0, this.linesIndex - 1)
+      let linesToRender = this.lines.slice(0, this.linesIndex - 1);
       if (linesToRender != null && linesToRender.length > 0) {
          await renderer.render(linesToRender);
       }
       this.linesIndex = 0;
-
    }
 
    chunk(arr, chunkSize) {
@@ -941,9 +935,24 @@ export default class {
             break;
          }
          this.currentLineNumber = this.renderedLines[i].gcodeLineNumber;
+         this.nozzleStartPosition = this.renderedLines[i].start;
          this.nozzlePosition = this.renderedLines[i].end;
+         this.nozzleFeedRate = this.renderedLines[i].feedRate;
+
          this.lastFilePositionIndex = i;
       }
+      this.doUpdate();
+   }
+
+   updateFilePositionIndex(index) {
+      if (index >= this.renderedLines.length) return;
+      //Some renderers will ahve multiple instances like block and line
+      this.currentLineNumber = this.renderedLines[index].gcodeLineNumber;
+      this.nozzleStartPosition = this.renderedLines[index].start;
+      this.nozzlePosition = this.renderedLines[index].end;
+      this.nozzleFeedRate = this.renderedLines[index].feedRate;
+      this.lastFilePositionIndex =index;
+      this.renderInstances.forEach((r) => r.updateFilePosition(this.renderedLines[index].gcodeFilePosition));
       this.doUpdate();
    }
 
