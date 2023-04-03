@@ -7,9 +7,9 @@ export default class KiriMoto extends SlicerBase {
         super();                                                                                                     
  
         this.featureList = { 
-            'shells': { color: new Color4(1, 0.9, 0.3, 1), perimeter: false, support : false }, 
+            'shells': { color: new Color4(1, 0.9, 0.3, 1), perimeter: true, support : false }, 
             'sparse infill': { color: new Color4(0.59, 0.19, 0.16, 1), perimeter: false, support : false }, 
-            'solid fill': { color: new Color4(0.59, 0.19, 0.8, 1), perimeter: false , support : false}, 
+            'solid fill': { color: new Color4(0.59, 0.19, 0.8, 1), perimeter: true , support : false}, 
             'Unknown': { color: new Color4(0.5, 0.5, 0.5, 1), perimeter: false , support : false}, 
  
             //Look up colors 
