@@ -166,7 +166,6 @@ export default class {
             }
          } else {
             if (this.pause) {
-               console.log('e', Date.now() - this.gcodeProcessor.lastUpdate > this.renderTimeout)
                return;
             }
          }

@@ -358,7 +358,7 @@ export default class {
       if ((command[0] === 'G1' || command[0] === 'G01') && this.g1AsExtrusion) {
          line.extruding = true;
          line.color = this.tools[this.currentTool]?.color.clone() ?? this.tools[0].color.clone();
-         this.maxHeight = this.currentPosition.y; //trying to get the max height of the model.
+         this.maxHeight = this.zBelt ? this.currentPosition.z :  this.currentPosition.y; //trying to get the max height of the model.
       }
 
       if (this.zBelt) {
