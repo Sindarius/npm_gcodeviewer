@@ -60,7 +60,6 @@ export default class {
       this.liveTracking = false; //Tracks if we loaded the current job to enable live rendering
       this.liveTrackingShowSolid = localStorage.getItem('showSolid') === 'true'; //Flag if we want to continue showing the whole model while rendering
 
-      this.materialTransparency = 0.3;
       this.gcodeLineIndex = [];
       this.gcodeFilePosition = 0;
 
@@ -187,8 +186,10 @@ export default class {
       this.arcPlane = 'XY';
 
       //Workplace coordinates
-      this.workplaceOffsets = [new Vector3(1, 1, 4), new Vector3(0, 0, 0)];
+      this.workplaceOffsets = [new Vector3(0, 0, 0), new Vector3(0, 0, 0)];
       this.currentWorkplace = 0; //internally we'll start at 0, but the user will see 1
+      this.progressMode = false;
+      this.transparentValue = 0.25;
    }
 
    doUpdate() {
@@ -890,6 +891,8 @@ export default class {
       renderer.progressColor = this.progressColor;
       renderer.vertexAlpha = this.vertexAlpha;
       renderer.g1AsExtrusion = this.g1AsExtrusion;
+      renderer.progressMode = this.progressMode;
+      renderer.transparentValue = this.transparentValue;
       this.renderInstances.push(renderer);
 
       let linesToRender = this.lines.slice(0, this.linesIndex - 1);
@@ -1096,4 +1099,12 @@ export default class {
       this.hyp = Math.cos(this.gantryAngle);
       this.adj = Math.tan(this.gantryAngle);
    }
+
+   setTransparencyValue(value) {
+      this.transparentValue = value;
+      this.renderInstances.forEach((r) => {
+         r.transparentValue = value;
+      })
+   }
+
 }

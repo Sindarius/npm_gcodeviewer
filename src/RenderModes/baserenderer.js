@@ -19,9 +19,10 @@ export class BaseRenderer {
       this.forceRedraw = false;
       this.material = null;
       this.fadeRate = 0.2;
-       this.transparentValue = 0.25;
+      this.transparentValue = 0.25;
       this.renderRange = 0;
       this.g1AsExtrusion = false;
+      this.progressMode = false;
    }
 
    //Used for rendering visual
@@ -44,4 +45,9 @@ export class BaseRenderer {
             && lastPosition <= max + 1000
         )
    }
+
+   getTransparentValue() {
+      return this.vertexAlpha ? this.transparentValue : 0;
+   }
+
 }
