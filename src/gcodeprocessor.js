@@ -190,6 +190,7 @@ export default class {
       this.currentWorkplace = 0; //internally we'll start at 0, but the user will see 1
       this.progressMode = false;
       this.transparentValue = 0.25;
+      this.hasMixing = false;
    }
 
    doUpdate() {
@@ -338,6 +339,7 @@ export default class {
       this.lastCommand = 'G0';
       this.lines = new Array(this.meshBreakPoint * 1.5);
       this.linesIndex = 0;
+      this.hasMixing = false;
 
       //incase no value is currently set.
       if (this.workplaceOffsets.length === 0) {
@@ -807,6 +809,7 @@ export default class {
                   }
                   break;
                case 'M567': {
+                  this.hasMixing = true;
                   this.m567(tokenString);
                   break;
                }
@@ -893,6 +896,8 @@ export default class {
       renderer.g1AsExtrusion = this.g1AsExtrusion;
       renderer.progressMode = this.progressMode;
       renderer.transparentValue = this.transparentValue;
+      renderer.hasMixing = this.hasMixing;
+      renderer.colorMode = this.colorMode;
       this.renderInstances.push(renderer);
 
       let linesToRender = this.lines.slice(0, this.linesIndex - 1);
@@ -1034,7 +1039,7 @@ export default class {
    }
 
    resetTools() {
-      this.tools = new Array();
+      this.tools.length = 0
    }
 
    addTool(color, diameter, toolType = ToolType.Extruder) {

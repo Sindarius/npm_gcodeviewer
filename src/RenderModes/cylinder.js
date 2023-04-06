@@ -70,6 +70,7 @@ export default class CylinderRenderer extends BaseRenderer {
          let data = {};
          data.matrix = segment.matrix;
          data.color = segment.color;
+         data.tool = line.tool;
          segments[segmentCount++] = data;
          gcodeLineIndex[lineIdx] = segment.props.gcodeFilePosition;
       }
@@ -96,9 +97,13 @@ export default class CylinderRenderer extends BaseRenderer {
       let updateSegments = () => {
          let colorUpdated = scrubbing;
          let positionUpdated = scrubbing;
+         
          for (let idx = 0; idx < segmentCount; idx++) {
             let matrixIdx = idx * 16;
             let colorIdx = idx * 4;
+            if (this.canUpdateColor()) {
+               segments[idx].color = this.hasMixing ? segments[idx].color : this.tools[segments[idx].tool].color;
+            }
 
              if (scrubbing && !this.progressMode) {
                if (gcodeLineIndex[idx] <= this.currentFilePosition) {

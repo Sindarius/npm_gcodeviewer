@@ -1,5 +1,6 @@
 import { Color4 } from '@babylonjs/core/Maths/math.color';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
+import { ColorMode } from '../gcodeprocessor'
 
 export class BaseRenderer {
    constructor(scene, specularColor, loadingProgressCallback, renderFuncs, tools) {
@@ -23,6 +24,8 @@ export class BaseRenderer {
       this.renderRange = 0;
       this.g1AsExtrusion = false;
       this.progressMode = false;
+      this.hasMixing = false;
+      this.colorMode = ColorMode.Color;
    }
 
    //Used for rendering visual
@@ -48,6 +51,10 @@ export class BaseRenderer {
 
    getTransparentValue() {
       return this.vertexAlpha ? this.transparentValue : 0;
+   }
+
+   canUpdateColor() {
+      return this.colorMode == ColorMode.Color && !this.hasMixing;
    }
 
 }
