@@ -4,7 +4,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color4, Color3 } from '@babylonjs/core/Maths/math.color';
 import { pauseProcessing, doArc } from './utils.js';
 import gcodeLine from './gcodeline';
-import Tool, { ToolType } from './tool';
+import Tool, { ToolType, DARKERSCALE } from './tool';
 
 import BlockRenderer from './RenderModes/block';
 import CylinderRenderer from './RenderModes/cylinder';
@@ -357,6 +357,7 @@ export default class {
       line.gcodeFilePosition = filePosition;
       line.start = this.currentPosition.clone();
       line.feedRate = this.currentFeedRate;
+      line.isPerimeter = this.slicer.isPerimeter();
 
       if ((command[0] === 'G1' || command[0] === 'G01') && this.g1AsExtrusion) {
          line.extruding = true;
@@ -536,6 +537,7 @@ export default class {
          line.gcodeLineNumber = lineNumber;
          line.gcodeFilePosition = filePosition;
          line.feedRate = this.currentFeedRate;
+         line.isPerimeter = this.slicer.isPerimeter();
          if (this.g1AsExtrusion) {
             line.layerHeight = 1; // this.tools[this.currentTool].diameter;
          } else {
@@ -1045,6 +1047,7 @@ export default class {
    addTool(color, diameter, toolType = ToolType.Extruder) {
       const tool = new Tool();
       tool.color = Color4.FromHexString(color.padEnd(9, 'F'));
+      tool.updateDarkerValue();
       tool.diameter = diameter;
       tool.toolType = toolType;
       this.tools.push(tool);
@@ -1053,6 +1056,7 @@ export default class {
    updateTool(color, diameter, index) {
       if (index < this.tools.length) {
          this.tools[index].color = Color4.FromHexString(color.padEnd(9, 'F'));
+         this.tools[index].updateDarkerValue();
          this.tools[index].diameter = diameter;
       }
    }

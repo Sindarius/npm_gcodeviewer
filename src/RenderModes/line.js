@@ -21,6 +21,7 @@ export default class LineRenderer extends BaseRenderer {
       let additive = new Array(lines.length);
       let completed = new Array(lines.length);
       let tools = new Array(lines.length)
+      let isPerimeter = new Array(lines.length);
 
       for (var lineIdx = 0; lineIdx < lines.length; lineIdx++) {
          let line = lines[lineIdx];
@@ -32,7 +33,7 @@ export default class LineRenderer extends BaseRenderer {
          lineArray[lineIdx] = data.points;
          colorArray[lineIdx] = data.colors;
          tools[lineIdx] = line.tool;
-
+         isPerimeter[lineIdx] = line.isPerimeter;
          additive[lineIdx] = tool.isAdditive() && !this.travels;
          completed[lineIdx] = false;
       }
@@ -80,7 +81,12 @@ export default class LineRenderer extends BaseRenderer {
                let colorIdx = idx * 8;
                
                if (this.canUpdateColor()) {
-                  colorArray[idx] = [this.tools[tools[idx]].color, this.tools[tools[idx]].color];
+                  if (!isPerimeter[idx]) {
+                     colorArray[idx] = [this.tools[tools[idx]].colorDarker,this.tools[tools[idx]].colorDarker];
+                  }
+                  else {
+                     colorArray[idx] = [this.tools[tools[idx]].color,this.tools[tools[idx]].color];
+                  }
                }
 
                if (this.travels) {

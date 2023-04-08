@@ -18,6 +18,7 @@ export default class {
     this.color = null;
     this.feedRate = 0;
     this.layerHeight = 0;
+    this.isPerimeter = false;
   }
 
   length() {
