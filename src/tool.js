@@ -26,13 +26,11 @@ export default class Tool {
    }
 
    updateDarkerValue() {
-      console.log(this.color);
       if (this.color.r < 0.3 && this.color.g < 0.3 && this.color.b < 0.3) {
          this.colorDarker = this.color.add(new Color4(COLORSCALE, COLORSCALE, COLORSCALE, 0))
       } else {
          this.colorDarker = this.color.subtract(new Color4(COLORSCALE, COLORSCALE, COLORSCALE, 0))
       }
-      console.log(this.colorDarker);
    }
 
    isAdditive() {
