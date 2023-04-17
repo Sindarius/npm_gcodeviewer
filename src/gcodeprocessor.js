@@ -4,7 +4,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { Color4, Color3 } from '@babylonjs/core/Maths/math.color';
 import { pauseProcessing, doArc } from './utils.js';
 import gcodeLine from './gcodeline';
-import Tool, { ToolType, DARKERSCALE } from './tool';
+import Tool, { ToolType } from './tool';
 
 import BlockRenderer from './RenderModes/block';
 import CylinderRenderer from './RenderModes/cylinder';
