@@ -1,6 +1,6 @@
 import { Color4 } from '@babylonjs/core/Maths/math.color';
 import '@babylonjs/core/Meshes/thinInstanceMesh';
-import { ColorMode } from '../gcodeprocessor'
+import { ColorMode } from '../modes.js';
 
 export class BaseRenderer {
    constructor(scene, specularColor, loadingProgressCallback, renderFuncs, tools) {
