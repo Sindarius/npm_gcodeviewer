@@ -104,6 +104,8 @@ export default class LineRenderer extends BaseRenderer {
                      if (this.progressMode) {
                         colorArray[idx][0].toArray(colorData, colorIdx);
                         colorArray[idx][1].toArray(colorData, colorIdx + 4);
+                        colorData[colorIdx + 3] = this.getTransparentValue();
+                        colorData[colorIdx + 7] = this.getTransparentValue();
                      }
                      colorData[colorIdx + 3] = additive[idx] ? this.getTransparentValue() : 0;
                      colorData[colorIdx + 7] = additive[idx] ? this.getTransparentValue() : 0;
