@@ -150,7 +150,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength, fixRa
 
     const points = new Array();
 
-    const axis2Dist = current[axis2] - move[axis2];
+    const axis2Dist = move[axis2] - current[axis2];
     const axis2Step = axis2Dist / totalSegments;
 
 

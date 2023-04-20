@@ -407,6 +407,7 @@ export default class {
                break;
             case 'F':
                this.currentFeedRate = Number(token.substring(1));
+               line.feedRate = this.currentFeedRate;
                if (this.currentFeedRate > this.maxFeedRate) {
                   this.maxFeedRate = this.currentFeedRate;
                }
@@ -535,8 +536,16 @@ export default class {
 
          line.start = curPt.clone();
          line.end = new Vector3(point.x, point.y, point.z);
-         line.color = this.currentColor.clone();
+         
          line.extruding = extruding;
+
+         if (extruding) {
+            line.color = this.currentColor.clone();
+         }
+         else {
+            line.color = new Color4(1, 0, 0, 1);
+         }
+
          if (this.debug) {
             line.color = cw ? new Color4(0, 1, 1, 1) : new Color4(1, 1, 0, 1);
             if (idx === 0) {
@@ -544,6 +553,7 @@ export default class {
             }
          }
          curPt = line.end.clone();
+
          if (this.debug) {
             console.log(line);
          }
@@ -551,9 +561,15 @@ export default class {
          if (!renderLine) {
             return;
          }
-
+         
          this.renderedLines.push(line);
-         this.lines[this.linesIndex++] = line;
+         if (line.extruding) {  
+            this.lines[this.linesIndex++] = line;
+         }
+         else {
+            this.travels.push(line);
+
+         }         
       });
 
       //Last point to currentposition
@@ -950,7 +966,7 @@ export default class {
       this.nozzleStartPosition = this.renderedLines[index].start;
       this.nozzlePosition = this.renderedLines[index].end;
       this.nozzleFeedRate = this.renderedLines[index].feedRate;
-      this.lastFilePositionIndex =index;
+      this.lastFilePositionIndex = index;
       this.renderInstances.forEach((r) => r.updateFilePosition(this.renderedLines[index].gcodeFilePosition));
       this.doUpdate();
    }
