@@ -104,6 +104,7 @@ export default class {
       buildObject.position.y = this.getMaxHeight() / 2 - 4;
       buildObject.position.z = (cancelObject.y[1] + cancelObject.y[0]) / 2;
       buildObject.alphaIndex = 5000000;
+      buildObject.isPickable = true;
       cancelObject.index = cancelObjectIdx;
       buildObject.metadata = cancelObject;
       buildObject.enablePointerMoveEvents = true;
@@ -225,6 +226,7 @@ export default class {
     }
   }
   setObjectTexture(mesh) {
+    if (!mesh.metadata) return;
     if (mesh.metadata.cancelled) {
       mesh.material = this.cancelledMaterial;
       mesh.enableEdgesRendering();

@@ -3,7 +3,7 @@
 import { Engine } from '@babylonjs/core/Engines/engine';
 import { WebGPUEngine } from '@babylonjs/core/Engines/webgpuEngine';
 
-import { Scene } from '@babylonjs/core/scene';
+import { Scene, ScenePerformancePriority } from '@babylonjs/core/scene';
 import { Plane } from '@babylonjs/core/Maths/math.plane';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
@@ -16,13 +16,14 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
 import '@babylonjs/core/Rendering/edgesRenderer';
 import '@babylonjs/loaders/OBJ/';
+import "@babylonjs/core/Culling/ray" //Add ray casting support for hit testing.
 
 import '@babylonjs/core/Engines/WebGPU/Extensions';
 import { JRNozzle } from './models';
 import './models';
 
-// import '@babylonjs/core/Debug/debugLayer';
-// import '@babylonjs/inspector';
+ //import '@babylonjs/core/Debug/debugLayer';
+ //import '@babylonjs/inspector';
 
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
@@ -128,6 +129,7 @@ export default class {
       this.engine.enableOfflineSupport = false;
       this.scene = new Scene(this.engine);
 
+      this.scene.performancePriority = ScenePerformancePriority.BackwardCompatible;
       if (this.debug) {
          //this.scene.debugLayer.show({ embedMode: true });
       }
