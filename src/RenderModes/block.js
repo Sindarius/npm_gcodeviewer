@@ -136,13 +136,14 @@ export default class BlockTIRenderer extends BaseRenderer {
                }
             } else {
                if (gcodeLineIndex[idx] <= this.currentFilePosition && colorData[colorIdx + 3] < 0.5) {
-                  this.progressColor.toArray(colorData, colorIdx);
-                  colorData[colorIdx + 3] = 0.9;
+                  if(this.renderAnimation) this.progressColor.toArray(colorData, colorIdx);
+                  colorData[colorIdx + 3] = this.renderAnimation ?  0.9 : 2;
                   colorUpdated = true;
                   segments[idx].matrix.copyToArray(matrixData, matrixIdx);
                   positionUpdated = true;
-                  continue;
+                  if(this.renderAnimation) continue;
                }
+
 
                if (colorData[colorIdx + 3] > 0.5 && colorData[colorIdx + 3] < 1) {
                   colorData[colorIdx + 3] += 0.02;
@@ -179,10 +180,10 @@ export default class BlockTIRenderer extends BaseRenderer {
       let scrubbing = false;
       let meshFrozen = false;
 
-      let timeStamp = Date.now();
+      this.timeStamp = Date.now();
       let beforeRenderFunc = () => {
-         if (this.isLoading || Date.now() - timeStamp < 200) return;
-         timeStamp = Date.now();
+         if (this.isLoading || Date.now() - this.timeStamp < 200) return;
+         this.timeStamp = Date.now();
 
          if (this.doScrub(lastPosition, minFilePosition, maxFilePosition) || this.forceRedraw) {
             scrubbing = true;

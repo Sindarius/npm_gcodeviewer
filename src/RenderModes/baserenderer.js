@@ -26,6 +26,8 @@ export class BaseRenderer {
       this.progressMode = false;
       this.hasMixing = false;
       this.colorMode = ColorMode.Color;
+      this.renderAnimation = true;
+      this.timeStamp = 0
    }
 
    //Used for rendering visual
@@ -55,6 +57,10 @@ export class BaseRenderer {
 
    canUpdateColor() {
       return this.colorMode == ColorMode.Color && !this.hasMixing;
+   }
+
+   forceDraw() {
+      this.timeStamp = 0;
    }
 
 }

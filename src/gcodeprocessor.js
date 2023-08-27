@@ -180,6 +180,7 @@ export default class {
       this.progressMode = false;
       this.transparentValue = 0.25;
       this.hasMixing = false;
+      this.renderAnimation = true;
    }
 
    doUpdate() {
@@ -322,7 +323,10 @@ export default class {
       this.currentTool = 0;
       this.firstGCodeByte = 0;
       this.lastGCodeByte = 0;
-      this.layerDictionary = [];
+      
+      this.layerDictionary = []; //Dictionary of file positions where Z changes
+      this.lastZExtrusion = 0; //We'll use this to drive layers
+
       this.renderedLines = [];
       this.beltLength = 0;
       this.lastCommand = 'G0';
@@ -479,6 +483,12 @@ export default class {
       }
 
       this.renderedLines.push(line);
+
+      if (line.extruding && this.lastZExtrusion < this.currentPosition.y) { 
+         this.layerDictionary.push(filePosition)
+         this.lastZExtrusion = this.currentPosition.y;
+      }
+
 
       if (spindleCutting || (lineTolerance && line.extruding)) {
          if (this.currentColor === null) {
@@ -681,6 +691,8 @@ export default class {
          }
          this.doUpdate();
       }
+
+      this.layerDictionary.push(file.length);
 
       //build the travel mesh
       if (this.renderTravels) {
@@ -905,6 +917,7 @@ export default class {
       renderer.transparentValue = this.transparentValue;
       renderer.hasMixing = this.hasMixing;
       renderer.colorMode = this.colorMode;
+      renderer.renderAnimation = this.renderAnimation;
       this.renderInstances.push(renderer);
 
       let linesToRender = this.lines.slice(0, this.linesIndex - 1);
@@ -1074,6 +1087,12 @@ export default class {
       this.doUpdate();
    }
 
+   forceRender() {
+      for (let idx = 0; idx < this.renderInstances.length; idx++) {
+         this.renderInstances[idx].timeStamp = 0;
+      }
+   }
+
    useHighQualityExtrusion(active) {
       this.highQualityExtrusion = active;
    }
@@ -1120,5 +1139,12 @@ export default class {
          r.transparentValue = value;
       })
    }
+   
+   setRenderAnimation(value) {
+      this.renderAnimation = value;
+      this.renderInstances.forEach((r) => r.renderAnimation = this.renderAnimation);
+   }
+   
+
 
 }

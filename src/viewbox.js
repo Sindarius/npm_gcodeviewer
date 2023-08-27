@@ -14,8 +14,10 @@ var viewBoxScene = null;
 var showView = true;
 
 
-export function showViewBox(show){
-  showView = show;
+export function showViewBox(show) {
+  viewBoxScene.meshes.forEach((mesh) => {
+    mesh.setEnabled(show);
+  });  
 }
 
 function buildPlane(scene, name, rotationVector) {
@@ -103,7 +105,7 @@ export function createViewBox(engine, mainScene, mainCamera) {
   camera2.viewport = new Viewport(0.85, 0.85, 0.15, 0.15);
   camera2.viewport.toGlobal(200, 200);
 
-  // Dupplicate scene info
+  // Duplicate scene info
   mainScene.afterRender = () => {
     if(!showView) return;
     viewBoxScene.render();

@@ -5,7 +5,7 @@ import { WebGPUEngine } from '@babylonjs/core/Engines/webgpuEngine';
 
 import { Scene, ScenePerformancePriority } from '@babylonjs/core/scene';
 import { Plane } from '@babylonjs/core/Maths/math.plane';
-import { Color3 } from '@babylonjs/core/Maths/math.color';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
@@ -14,6 +14,7 @@ import { Axis, Space } from '@babylonjs/core/Maths/math.axis';
 import { version } from '../package.json';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader';
+import { ScreenshotTools } from '@babylonjs/core/Misc/screenshotTools'
 import '@babylonjs/core/Rendering/edgesRenderer';
 import '@babylonjs/loaders/OBJ/';
 import "@babylonjs/core/Culling/ray" //Add ray casting support for hit testing.
@@ -29,7 +30,7 @@ import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
 import BuildObjects from './buildobjects.js';
 import Axes from './axes.js';
-import { createViewBox, registerViewBoxCallback } from './viewbox';
+import { createViewBox, registerViewBoxCallback, showViewBox } from './viewbox';
 import Workplace from './workplace.js';
 
 export default class {
@@ -211,6 +212,7 @@ export default class {
       this.workplace.render();
 
       this.resetCamera();
+
 
       createViewBox(this.engine, this.scene, this.orbitCamera);
       registerViewBoxCallback((position) => {
@@ -676,4 +678,59 @@ export default class {
          this.gcodeProcessor.updateFilePositionIndex(this.gcodeProcessor.lastFilePositionIndex + update);
       }
    }
+
+   getCameraPosition() {
+      return this.scene.cameras[0].position
+   }
+
+   getCameraTarget() {
+      return this.scene.cameras[0].target
+   }
+   
+   setCameraPosition(x, y, z) { 
+      console.log(this.scene.activeCamera.position)
+      var _x = Number(x)
+      var _y = Number(y)
+      var _z = Number(z)
+      //Do not update position with invalid values
+      if (NaN === _x || NaN === _y || NaN === _z) {
+         return;
+      }
+      this.scene.activeCamera.position = new Vector3(Number(x), Number(z), Number(y));
+      this.forceRender();
+   }
+
+   setCameraTarget(x, y, z) {
+      var _x = Number(x)
+      var _y = Number(y)
+      var _z = Number(z)
+      //Do not update position with invalid values
+      if (NaN === _x || NaN === _y || NaN === _z) {
+         return;
+      }
+      this.scene.activeCamera.target = new Vector3(Number(x) ,Number(z), Number(y));
+      this.forceRender();
+   }
+
+   async createScreenshot() {
+      var clearColor = this.scene.clearColor;
+      this.scene.clearColor= new Color4(0,0,0,0)
+      this.displayViewBox(false)
+
+      var renderComplete = false
+      this.gcodeProcessor.forceRender();
+      this.gcodeProcessor.doUpdate();
+      this.scene.render(true, true)
+      this.scene.onAfterRenderObservable.addOnce(() => { renderComplete = true });
+      while (!renderComplete) { }
+      var data = await ScreenshotTools.CreateScreenshotAsync(this.engine, this.scene.activeCamera, { width: 1920, height: 1080 }) //, precision: 2
+      this.scene.clearColor = clearColor
+      return data
+   }
+
+   displayViewBox(show) {
+      showViewBox(show)
+   }
+
+
 }

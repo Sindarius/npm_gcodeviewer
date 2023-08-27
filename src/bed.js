@@ -67,6 +67,9 @@ export default class {
     this.scene.render();
   }
   buildBed() {
+    if (this.renderMode > 1) {
+      return;
+    }
     if (this.debug) return;
     if (this.bedMesh && this.bedMesh.isDisposed()) {
       this.bedMesh = null;
@@ -204,6 +207,7 @@ export default class {
   }
   setBedColor(color) {
     localStorage.setItem('bedLineColor', color);
+    if (this.renderMode > 1) return;
     if (this.planeMaterial) {
       this.planeMaterial = this.buildGridMaterial();
       this.dispose();
@@ -215,6 +219,8 @@ export default class {
     return Color4.FromHexString(this.getBedColor().padEnd(9, 'F'));
   }
   dispose() {
-    this.bedMesh.dispose(false, true);
+    if (this.bedMesh && !this.bedMesh.isDisposed) {
+      this.bedMesh.dispose(false, true);
+    }
   }
 }

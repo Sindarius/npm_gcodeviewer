@@ -142,16 +142,18 @@ export default class CylinderRenderer extends BaseRenderer {
                }
             } else {
                if (gcodeLineIndex[idx] <= this.currentFilePosition && colorData[colorIdx + 3] < 0.5) {
-                  this.progressColor.toArray(colorData, colorIdx);
-                  colorData[colorIdx + 3] = 0.9;
+                  if(this.renderAnimation) this.progressColor.toArray(colorData, colorIdx);
+                  colorData[colorIdx + 3] = this.renderAnimation ?  0.9 : 2;
                   colorUpdated = true;
                   segments[idx].matrix.copyToArray(matrixData, matrixIdx);
                   positionUpdated = true;
-                  continue;
+                  if(this.renderAnimation) continue;
                }
 
+               
+
                if (colorData[colorIdx + 3] > 0.5 && colorData[colorIdx + 3] < 1) {
-                  colorData[colorIdx + 3] += 0.02;
+                  colorData[colorIdx + 3] += 0.02; //update color data
                   let percent = (colorData[colorIdx + 3] - 0.9) * 10;
                   colorData[colorIdx] = this.lerp(this.progressColor.r, segments[idx].color.r, percent);
                   colorData[colorIdx + 1] = this.lerp(this.progressColor.g, segments[idx].color.g, percent);
@@ -184,10 +186,10 @@ export default class CylinderRenderer extends BaseRenderer {
       let scrubbing = false;
       let meshFrozen = false;
 
-      let timeStamp = Date.now();
+      this.timeStamp = Date.now();
       const beforeRenderFunc = () => {
-         if (this.isLoading || Date.now() - timeStamp < 200) return;
-         timeStamp = Date.now();
+         if (this.isLoading || Date.now() - this.timeStamp < 200) return;
+         this.timeStamp = Date.now();
 
          if (this.doScrub(lastPosition, minFilePosition, maxFilePosition) || this.forceRedraw) {
             scrubbing = true;
