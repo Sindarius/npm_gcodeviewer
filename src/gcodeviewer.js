@@ -712,7 +712,7 @@ export default class {
       this.forceRender();
    }
 
-   async createScreenshot() {
+   async createScreenshot(width = 1920, height = 1080) {
       var clearColor = this.scene.clearColor;
       this.scene.clearColor= new Color4(0,0,0,0)
       this.displayViewBox(false)
@@ -723,7 +723,7 @@ export default class {
       this.scene.render(true, true)
       this.scene.onAfterRenderObservable.addOnce(() => { renderComplete = true });
       while (!renderComplete) { }
-      var data = await ScreenshotTools.CreateScreenshotAsync(this.engine, this.scene.activeCamera, { width: 1920, height: 1080 }) //, precision: 2
+      var data = await ScreenshotTools.CreateScreenshotAsync(this.engine, this.scene.activeCamera, { width: width, height: height }) //, precision: 2
       this.scene.clearColor = clearColor
       return data
    }
