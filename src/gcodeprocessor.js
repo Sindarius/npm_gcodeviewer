@@ -342,7 +342,7 @@ export default class {
    }
 
    g0g1(tokenString, lineNumber, filePosition, renderLine, command) {
-      let tokens = tokenString.split(/(?=[GXYZEFUV])/);
+      let tokens = tokenString.split(/(?=[GXYZEFUVAB])/);
       const line = new gcodeLine();
       let hasXYMove = false;
       line.tool = this.currentTool;

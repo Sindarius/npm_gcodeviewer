@@ -39,7 +39,7 @@ export default class KiriMoto extends SlicerBase {
                 this.reportMissingFeature(this.feature); 
             } 
         } 
-        return this.featureList.Unknown.color;
+        return this.unknownFeatureColor;
     } 
  
     isPerimeter(){ 

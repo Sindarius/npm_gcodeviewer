@@ -1,3 +1,5 @@
+import { Color4 } from '@babylonjs/core/Maths/math.color';
+
 /* eslint-disable */
 export default class SlicerSpecificBase {
     constructor() {
@@ -6,6 +8,8 @@ export default class SlicerSpecificBase {
         this.support = false;
         this.missingFeatures = []
     }
+
+    unknownFeatureColor = new Color4(0.5, 0.5, 0.5, 1);
 
     isTypeComment(comment) { return false; }
     getFeatureColor(comment) { return new Color4(1, 1, 1, 1) }

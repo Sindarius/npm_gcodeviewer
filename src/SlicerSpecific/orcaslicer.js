@@ -67,7 +67,17 @@ export default class OrcaSlicer extends SlicerBase {
             color: new Color4(0.7, 0.89, 0.67, 1),
             perimeter: false,
             support: false
-         }
+         },
+         'Internal Bridge': {
+            color: new Color4(0.3, 0.5, 0.73, 1),
+            perimeter: false,
+            support: false
+         },
+         'Skirt': {
+            color: new Color4(0, 0.53, 0.43, 1),
+            perimeter: false,
+            support: false
+         },
       };
    }
 
@@ -86,7 +96,7 @@ export default class OrcaSlicer extends SlicerBase {
             this.reportMissingFeature(this.feature);
          }
       }
-      return this.featureList.Unknown.color;
+      return this.unknownFeatureColor;
    }
 
    isPerimeter() {
