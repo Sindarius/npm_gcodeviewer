@@ -67,7 +67,12 @@ export default class OrcaSlicer extends SlicerBase {
             color: new Color4(0.7, 0.89, 0.67, 1),
             perimeter: false,
             support: false
-         }
+         },
+         'Unknown': {
+            color: new Color4(0.5, 0.5, 0.5, 1),
+            perimeter: false ,
+            support : false
+         },
       };
    }
 
