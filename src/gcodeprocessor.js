@@ -521,7 +521,7 @@ export default class {
    }
 
    g2g3(tokenString, lineNumber, filePosition, renderLine) {
-      let tokens = tokenString.split(/(?=[GXYZIJKFRE])/);
+      let tokens = tokenString.split(/(?=[GXYZIJKFREUVAB])/);
       let extruding = tokenString.indexOf('E') > 0 || this.g1AsExtrusion; //Treat as an extrusion in cnc mode
       let cw = tokens.filter((t) => t === 'G2' || t === 'G02');
       let arcResult = { position: this.currentPosition.clone(), points: [] };
