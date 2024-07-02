@@ -1,6 +1,6 @@
 {
    "name": "@sindarius/gcodeviewer",
-   "version": "3.7.9",
+   "version": "3.7.10",
    "description": "GCode Visualization Package",
    "module": "dist/sindarius-gcodeviewer.es.js",
    "sideEffects": false,
