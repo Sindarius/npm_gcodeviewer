@@ -33,10 +33,10 @@
    },
    "homepage": "http://www.sindarius.com",
    "dependencies": {
-      "@babylonjs/core": "^6.43.0",
-      "@babylonjs/inspector": "^6.43.0",
-      "@babylonjs/loaders": "^6.43.0",
-      "@babylonjs/materials": "^6.43.0",
+      "@babylonjs/core": "^7.13.1",
+      "@babylonjs/inspector": "^7.13.1",
+      "@babylonjs/loaders": "^7.13.1",
+      "@babylonjs/materials": "^7.13.1",
       "d3": "^7.4.4"
    },
    "devDependencies": {

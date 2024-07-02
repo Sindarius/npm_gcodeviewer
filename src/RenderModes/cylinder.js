@@ -88,8 +88,8 @@ export default class CylinderRenderer extends BaseRenderer {
       }
 
       let cylinder = this.buildCylinder();
-      cylinder.thinInstanceSetBuffer('matrix', matrixData, 16);
-      cylinder.thinInstanceSetBuffer('color', colorData, 4);
+      cylinder.thinInstanceSetBuffer('matrix', matrixData, 16, false);
+      cylinder.thinInstanceSetBuffer('color', colorData, 4, false);
       cylinder.thinInstanceRefreshBoundingInfo();
       cylinder.alphaIndex = this.meshIndex;
       cylinder.renderingGroupId = 2;

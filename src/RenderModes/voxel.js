@@ -260,8 +260,8 @@ export default class VoxelRenderer extends BaseRenderer {
                 }
             }
 
-            box.thinInstanceSetBuffer("matrix", matrixData, 16);
-            box.thinInstanceSetBuffer("color", colorData, 4);
+            box.thinInstanceSetBuffer("matrix", matrixData, 16, false);
+            box.thinInstanceSetBuffer("color", colorData, 4, false);
             box.thinInstanceRefreshBoundingInfo();
 
             let updateVoxels = () => {

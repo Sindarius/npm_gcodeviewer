@@ -84,8 +84,8 @@ export default class BlockTIRenderer extends BaseRenderer {
       let box = this.buildBox();
       box.alphaIndex = this.meshIndex;
       box.renderingGroupId = 2;
-      box.thinInstanceSetBuffer('matrix', matrixData, 16);
-      box.thinInstanceSetBuffer('color', colorData, 4);
+      box.thinInstanceSetBuffer('matrix', matrixData, 16, false);
+      box.thinInstanceSetBuffer('color', colorData, 4, false);
       box.thinInstanceRefreshBoundingInfo();
 
       let updateSegments = () => {
