@@ -28,6 +28,7 @@ export class BaseRenderer {
       this.colorMode = ColorMode.Color;
       this.renderAnimation = true;
       this.timeStamp = 0
+      this.persistTravels = false;
    }
 
    //Used for rendering visual

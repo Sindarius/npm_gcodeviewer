@@ -1,6 +1,6 @@
 {
    "name": "@sindarius/gcodeviewer",
-   "version": "3.7.11",
+   "version": "3.7.12",
    "description": "GCode Visualization Package",
    "module": "dist/sindarius-gcodeviewer.es.js",
    "sideEffects": false,
@@ -33,10 +33,10 @@
    },
    "homepage": "http://www.sindarius.com",
    "dependencies": {
-      "@babylonjs/core": "^7.13.1",
-      "@babylonjs/inspector": "^7.13.1",
-      "@babylonjs/loaders": "^7.13.1",
-      "@babylonjs/materials": "^7.13.1",
+      "@babylonjs/core": "^7.29.0",
+      "@babylonjs/inspector": "^7.29.0",
+      "@babylonjs/loaders": "^7.29.0",
+      "@babylonjs/materials": "^7.29.0",
       "d3": "^7.4.4"
    },
    "devDependencies": {

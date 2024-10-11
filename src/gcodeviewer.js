@@ -655,7 +655,7 @@ export default class {
          this.simulation = false;
          this.simulationStopped();
       }
-
+      
       if (this.simulationCurrentLine != this.gcodeProcessor.renderedLines[this.gcodeProcessor.lastFilePositionIndex]) {
          this.simulationCurrentLine = this.gcodeProcessor.renderedLines[this.gcodeProcessor.lastFilePositionIndex];
          this.updateToolPosition(this.simulationCurrentLine.start);
@@ -688,7 +688,6 @@ export default class {
    }
    
    setCameraPosition(x, y, z) { 
-      console.log(this.scene.activeCamera.position)
       var _x = Number(x)
       var _y = Number(y)
       var _z = Number(z)

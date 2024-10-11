@@ -9,6 +9,7 @@ export default class LineRenderer extends BaseRenderer {
       this.meshIndex = meshIndex ?? 0;
       this.additiveColor = new Color4(0, 1, 0, 0.8);
       this.travels = false;
+      this.travelColorArray = [new Color4(1, 0, 0, 1), new Color4(1, 0, 0, 1)];
    }
 
    render(lines) {
@@ -31,10 +32,10 @@ export default class LineRenderer extends BaseRenderer {
          gcodeLineIndex[lineIdx] = line.gcodeFilePosition;
          let data = line.getPoints(this.scene);
          lineArray[lineIdx] = data.points;
-         colorArray[lineIdx] = data.colors;
+         colorArray[lineIdx] = this.travels ?  this.travelColorArray : data.colors;
          tools[lineIdx] = line.tool;
          isPerimeter[lineIdx] = line.isPerimeter;
-         additive[lineIdx] = tool.isAdditive() && !this.travels;
+         additive[lineIdx] = tool.isAdditive() && !this.travels
          completed[lineIdx] = false;
       }
 
@@ -65,6 +66,7 @@ export default class LineRenderer extends BaseRenderer {
       let lastPosition = 0;
       let scrubbing = false;
       let lastRendered = 0;
+
       let updateLines = () => {
          var colorData = lineMesh.getVerticesData(VertexBuffer.ColorKind);
 
@@ -80,7 +82,7 @@ export default class LineRenderer extends BaseRenderer {
             for (let idx = 0; idx < gcodeLineIndex.length; idx++) {
                let colorIdx = idx * 8;
                
-               if (this.canUpdateColor()) {
+               if (this.canUpdateColor() && !this.travels) {
                   if (!isPerimeter[idx]) {
                      colorArray[idx] = [this.tools[tools[idx]].colorDarker,this.tools[tools[idx]].colorDarker];
                   }
@@ -89,11 +91,19 @@ export default class LineRenderer extends BaseRenderer {
                   }
                }
 
-               if (this.travels) {
+               if (this.travels && !this.persistTravels) {
                   colorData[colorIdx + 3] = 0;
                   colorData[colorIdx + 7] = 0;
                   completed[idx] = gcodeLineIndex[idx] <= this.currentFilePosition;
-               } else {
+               } else if (this.travels && this.persistTravels) {
+                  colorArray[idx][0].toArray(colorData, colorIdx);
+                  colorArray[idx][1].toArray(colorData, colorIdx + 4);
+                  colorData[colorIdx + 3] =  gcodeLineIndex[idx] <= this.currentFilePosition ? 1 : 0;
+                  colorData[colorIdx + 7] =  gcodeLineIndex[idx] <= this.currentFilePosition ? 1 : 0;
+                  completed[idx] = gcodeLineIndex[idx] <= this.currentFilePosition;
+               }
+               else
+               {
                   if (gcodeLineIndex[idx] <= this.currentFilePosition && !this.progressMode) {
                      colorArray[idx][0].toArray(colorData, colorIdx);
                      colorArray[idx][1].toArray(colorData, colorIdx + 4);
@@ -130,7 +140,7 @@ export default class LineRenderer extends BaseRenderer {
 
          for (let idx = startIdx; idx <= renderTo; idx++) {
             let colorIdx = idx * 8;
-            if (additive[idx]) {
+            if (additive[idx] || (this.travels && this.persistTravels)) {
                /*Additive Rendering*/
                if (completed[idx]) continue;
 

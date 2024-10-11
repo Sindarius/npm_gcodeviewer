@@ -121,7 +121,10 @@ export default class {
       this.everyNthRow = 0;
       this.currentRowIdx = -1;
       this.currentZ = 0;
+
       this.renderTravels = true;
+      this.persistTravels = false;
+
       this.vertexAlpha = false;
 
       this.forceWireMode = localStorage.getItem('forceWireMode') === 'true';
@@ -670,7 +673,7 @@ export default class {
             if (this.slicer) {
                this.slicer.isTypeComment(line);
             }
-            let renderLine = !this.perimeterOnly || (this.slicer && this.slicer.isPerimeter());
+            let renderLine = !this.perimeterOnly || (this.slicer && this.slicer.isPerimeter()) || this.g1AsExtrusion;
             if (this.firstGCodeByte === 0 && line.length > 0) {
                this.firstGCodeByte = filePosition;
             }
@@ -722,13 +725,14 @@ export default class {
 
       tokenString = tokenString.toUpperCase();
       let commands = tokenString.match(/[GM]+[0-9.]+/g); //|S+
-
       if (commands === null) {
          let hasMove = tokenString.match(/[XYZ]+[+-]?[0-9.]+/g);
          if (hasMove !== null) {
             commands = this.lastCommand;
          }
       }
+
+      let commandStrings = tokenString.trim().split(/[GM]+[0-9.]+/g);
 
       if (commands) {
          for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) {
@@ -738,13 +742,13 @@ export default class {
                case 'G1':
                case 'G00':
                case 'G01':
-                  this.g0g1(tokenString, lineNumber, filePosition, renderLine, commands);
+                  this.g0g1(commandStrings[1 + commandIndex], lineNumber, filePosition, renderLine, commands);
                   break;
                case 'G2':
                case 'G3':
                case 'G02':
                case 'G03':
-                  this.g2g3(tokenString, lineNumber, filePosition, renderLine);
+                  this.g2g3(commandStrings[1 + commandIndex], lineNumber, filePosition, renderLine);
                   break;
                case 'G10':
                   this.firmwareRetraction = true;
@@ -918,6 +922,7 @@ export default class {
       renderer.hasMixing = this.hasMixing;
       renderer.colorMode = this.colorMode;
       renderer.renderAnimation = this.renderAnimation;
+      renderer.persistTravels = this.persistTravels;
       this.renderInstances.push(renderer);
 
       let linesToRender = this.lines.slice(0, this.linesIndex - 1);
@@ -939,6 +944,7 @@ export default class {
          const renderer = new LineRenderer(scene, this.specularColor, this.loadingProgressCallback, this.renderFuncs, this.tools, this.meshIndex);
          renderer.travels = true;
          renderer.meshIndex = this.meshIndex + 1000;
+         renderer.persistTravels = this.persistTravels;
          await renderer.render(chunks[idx]);
          this.renderInstances.push(renderer);
       }
@@ -1144,7 +1150,12 @@ export default class {
       this.renderAnimation = value;
       this.renderInstances.forEach((r) => r.renderAnimation = this.renderAnimation);
    }
+
+   setTravelPersistence(value) {
+      this.persistTravels = value
+      this.renderInstances.forEach((r) => {
+         r.persistTravels = this.persistTravels
+      });
+   }
    
-
-
 }
