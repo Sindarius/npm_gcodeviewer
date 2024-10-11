@@ -216,7 +216,8 @@ export default class {
 
       createViewBox(this.engine, this.scene, this.orbitCamera);
       registerViewBoxCallback((position) => {
-         this.setCameraPosition(position);
+         console.log('viewbox callback', position)
+         this.setViewboxCameraPosition(position);
       });
 
       setTimeout(() => {
@@ -224,7 +225,7 @@ export default class {
       }, 1000);
    }
 
-   setCameraPosition(lookVector) {
+   setViewboxCameraPosition(lookVector) {
       const bedCenter = this.bed.getCenter();
       const bedSize = this.bed.getSize();
       this.scene.activeCamera.radius = bedSize.x * 1.5;
