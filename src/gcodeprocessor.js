@@ -524,6 +524,7 @@ export default class {
    }
 
    g2g3(tokenString, lineNumber, filePosition, renderLine) {
+      console.log(tokenString)
       let tokens = tokenString.split(/(?=[GXYZIJKFREUVAB])/);
       let extruding = tokenString.indexOf('E') > 0 || this.g1AsExtrusion; //Treat as an extrusion in cnc mode
       let cw = tokens.filter((t) => t === 'G2' || t === 'G02');
@@ -732,6 +733,7 @@ export default class {
          }
       }
 
+      console.log(commands);
       let commandStrings = tokenString.trim().split(/[GM]+[0-9.]+/g);
 
       if (commands) {
@@ -748,7 +750,8 @@ export default class {
                case 'G3':
                case 'G02':
                case 'G03':
-                  this.g2g3(commandStrings[1 + commandIndex], lineNumber, filePosition, renderLine);
+                  console.log(`${lineNumber}  ${commandStrings}`)
+                  this.g2g3(commands[commandIndex] + " " + commandStrings[1 + commandIndex], lineNumber, filePosition, renderLine);
                   break;
                case 'G10':
                   this.firmwareRetraction = true;
