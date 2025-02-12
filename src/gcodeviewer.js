@@ -128,6 +128,7 @@ export default class {
       }
 
       this.engine.enableOfflineSupport = false;
+      this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
       this.scene = new Scene(this.engine);
 
       this.scene.performancePriority = ScenePerformancePriority.BackwardCompatible;
