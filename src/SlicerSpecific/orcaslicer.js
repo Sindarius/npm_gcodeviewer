@@ -86,6 +86,11 @@ export default class OrcaSlicer extends SlicerBase {
          this.feature = comment.substring(6).trim();
          return true;
       }
+      if (comment.trim().startsWith(';HEIGHT:')) {
+         this.hasHeight = true;
+         this.height = comment.substring(8).trim();
+         return true;
+      }
       return false;
    }
    getFeatureColor() {

@@ -7,6 +7,8 @@ export default class SlicerSpecificBase {
         this.perimeter = true;
         this.support = false;
         this.missingFeatures = []
+        this.hasHeight = false;
+        this.height = 0.2;
     }
 
     unknownFeatureColor = new Color4(0.5, 0.5, 0.5, 1);

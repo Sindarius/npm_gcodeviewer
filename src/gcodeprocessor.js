@@ -518,7 +518,7 @@ export default class {
          if (this.g1AsExtrusion) {
             line.layerHeight = 1; // this.tools[this.currentTool].diameter;
          } else {
-            line.layerHeight = this.currentLayerHeight - this.previousLayerHeight;
+            line.layerHeight = this.slicer.hasHeight ? this.slicer.height : this.currentLayerHeight - this.previousLayerHeight;
          }
       }
    }
