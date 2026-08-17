@@ -18,6 +18,10 @@ import { ColorMode, RenderMode } from './modes.js';
 
 const MAXARRAYSIZE = 1000000;
 
+//A NIST RS274/NGC line starts with a word: one letter followed by a number. Klipper uses the same
+//test (klippy/gcode.py is_traditional_gcode) to separate g-code from its extended commands.
+const TRADITIONAL_GCODE = /^[A-Z][-+0-9.]/;
+
 export default class {
    constructor() {
       this.currentPosition = new Vector3(0, 0, 0);
@@ -174,7 +178,7 @@ export default class {
 
       this.csysContainers = new Array();
 
-      this.lastCommand = 'G0';
+      this.lastCommand = ['G0'];
       this.arcPlane = 'XY';
 
       //Workplace coordinates
@@ -184,6 +188,7 @@ export default class {
       this.transparentValue = 0.25;
       this.hasMixing = false;
       this.renderAnimation = true;
+      this.extendedCommands = new Set(); //Non-standard commands seen in the file (debug reporting)
    }
 
    doUpdate() {
@@ -332,7 +337,8 @@ export default class {
 
       this.renderedLines = [];
       this.beltLength = 0;
-      this.lastCommand = 'G0';
+      this.lastCommand = ['G0'];
+      this.extendedCommands.clear();
       this.lines = new Array(this.meshBreakPoint * 1.5);
       this.linesIndex = 0;
       this.hasMixing = false;
@@ -615,6 +621,18 @@ export default class {
       this.currentColor = new Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
    }
 
+   //Firmware extended commands: Klipper (EXCLUDE_OBJECT_*, SET_PRINT_STATS_INFO, PRINT_START),
+   //RepRapFirmware meta g-code, CNC parenthetical comments. None produce motion, so they are
+   //dropped from the render. Single entry point so features that want them can hook in here.
+   processExtendedCommand(tokenString) {
+      if (!this.debug) return;
+      const name = tokenString.split(/\s+/)[0];
+      if (!this.extendedCommands.has(name)) {
+         this.extendedCommands.add(name);
+         console.info(`Skipping non-standard command: ${name}`);
+      }
+   }
+
    async processGcodeFile(file, renderQuality, clearCache) {
       this.initVariables();
       this.slicer = SlicerFactory.getSlicer(file);
@@ -719,20 +737,28 @@ export default class {
       //Remove the comments in the line
       let commentIndex = tokenString.indexOf(';');
       if (commentIndex > -1) {
-         tokenString = tokenString.substring(0, commentIndex - 1).trim();
+         tokenString = tokenString.substring(0, commentIndex).trim();
       }
       let tokens;
 
-      tokenString = tokenString.toUpperCase();
-      let commands = tokenString.match(/[GM]+[0-9.]+/g); //|S+
-      if (commands === null) {
-         let hasMove = tokenString.match(/[XYZ]+[+-]?[0-9.]+/g);
-         if (hasMove !== null) {
-            commands = this.lastCommand;
-         }
+      tokenString = tokenString.trim().toUpperCase();
+      if (!tokenString) return;
+
+      //Anything that isn't a NIST word is a firmware extended command - it never produces motion.
+      if (!TRADITIONAL_GCODE.test(tokenString)) {
+         this.processExtendedCommand(tokenString);
+         return;
       }
 
-      let commandStrings = tokenString.trim().split(/[GM]+[0-9.]+/g);
+      let commands = tokenString.match(/[GM]+[0-9.]+/g); //|S+
+      let commandStrings = tokenString.split(/[GM]+[0-9.]+/g);
+
+      if (commands === null && /^[XYZ]/.test(tokenString)) {
+         //Bare axis words continue the previous motion command. There is no G/M word to split
+         //on, so the whole line is the argument list. (regressed in 3.7.12 by 3f7eeef)
+         commands = this.lastCommand;
+         commandStrings = ['', tokenString];
+      }
 
       if (commands) {
          for (let commandIndex = 0; commandIndex < commands.length; commandIndex++) {
